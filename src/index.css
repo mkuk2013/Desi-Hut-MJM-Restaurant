@@ -1251,4 +1251,35 @@ button {
     top: 15px !important;
     right: 15px !important;
   }
+
+  /* Prevent All X-Axis Scrolling */
+  html, body {
+    overflow-x: hidden !important;
+    width: 100vw;
+  }
+  
+  .app-wrapper {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* Fix grid minmax causing overflow on small screens < 350px */
+  .features-grid, 
+  .gallery-grid, 
+  .testimonials-grid, 
+  .contact-grid,
+  .menu-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Make Preloader Responsive */
+  .loader-ring {
+    width: 120px !important;
+    height: 120px !important;
+  }
+  .loader-logo {
+    width: 80px !important;
+    height: 80px !important;
+    padding: 10px !important;
+  }
 }
