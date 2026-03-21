@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { Routes, Route, Link, NavLink, useNavigate } from 'react-router-dom'
-import { ShoppingCart, User, LogOut, Menu as MenuIcon, X, Phone, MapPin, Instagram, Facebook, Search, Filter, Plus, Minus, Trash2, Box, Utensils, CheckCircle, MessageCircle, ChevronUp } from 'lucide-react'
+import { BrowserRouter as Router, Routes, Route, Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { ShoppingCart, User, LogOut, Menu as MenuIcon, X, Phone, MapPin, Instagram, Facebook, Search, Filter, Plus, Minus, Trash2, Box, Utensils, CheckCircle, MessageCircle, ChevronUp, AlertCircle } from 'lucide-react'
 import { menuData } from './lib/menuData'
 import { supabase } from './lib/supabase'
 import logo from './assets/logo.png'
@@ -283,7 +283,7 @@ const MenuPage = ({ addToCart, products = menuData }) => {
   )
 }
 
-const Navbar = ({ cartCount }) => {
+const Navbar = ({ cartCount, user, adminUser, onLogout }) => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
@@ -306,11 +306,32 @@ const Navbar = ({ cartCount }) => {
           <NavLink to="/contact" onClick={() => setIsMobileMenuOpen(false)}>Contact</NavLink>
         </div>
         <div className="nav-actions">
-          <Link to="/login" className="nav-icon"><User size={20} /></Link>
-          <Link to="/cart" className="nav-icon cart-trigger">
-            <ShoppingCart size={20} />
-            {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
-          </Link>
+          {user || adminUser ? (
+            <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+              {adminUser && (
+                <Link to="/admin" style={{fontSize: '0.85rem', color: '#fff', background: 'var(--primary)', padding: '5px 12px', borderRadius: '20px', textDecoration: 'none', fontWeight: 'bold'}}>Dashboard</Link>
+              )}
+              <span className="user-badge" style={{fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 'bold', border: '1px solid var(--primary)', padding: '2px 8px', borderRadius: '12px'}}>
+                {adminUser ? 'Admin' : 'Logged In'}
+              </span>
+              <button 
+                onClick={onLogout} 
+                className="nav-icon" 
+                style={{background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', display: 'flex', alignItems: 'center'}}
+                title="Logout"
+              >
+                <LogOut size={20} />
+              </button>
+            </div>
+          ) : (
+            <Link to="/login" className="nav-icon" title="Login"><User size={20} /></Link>
+          )}
+          {!adminUser && (
+            <Link to="/cart" className="nav-icon cart-trigger">
+              <ShoppingCart size={20} />
+              {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
+            </Link>
+          )}
           <button className="mobile-toggle" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
             {isMobileMenuOpen ? <X size={24} /> : <MenuIcon size={24} />}
           </button>
@@ -383,6 +404,10 @@ const CartPage = ({ cart, updateQty, removeItem }) => {
 
 const CheckoutPage = ({ cart, clearCart }) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState({ name: '', phone: '', address: '' })
+  const [method, setMethod] = useState('COD')
+  const [isOrdered, setIsOrdered] = useState(false)
+  const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
 
   const handleOrder = async (e) => {
     e.preventDefault()
@@ -632,14 +657,36 @@ const ContactPage = () => {
   )
 }
 
-const LoginPage = () => {
+const LoginPage = ({ onLogin }) => {
   const [isLogin, setIsLogin] = useState(true)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const message = location.state?.message
+  
+  const handleAuth = (e) => {
+    e.preventDefault()
+    // In a real app, this would be a Supabase auth call.
+    // For now, we'll simulate a successful login for the user.
+    onLogin({ name: 'Guest User', email: 'guest@example.com' })
+    navigate('/')
+  }
+
   return (
-    <div className="auth-page section-padding fade-in">
+    <div className="auth-page section-padding fade-in" style={{marginTop: '80px'}}>
       <div className="container" style={{display: 'flex', justifyContent: 'center'}}>
-        <div className="auth-card">
-          <h2>{isLogin ? 'Login to Desi Hut' : 'Join Desi Hut'}</h2>
-          <form onSubmit={(e) => e.preventDefault()}>
+        <div className="auth-card" style={{width: '100%', maxWidth: '450px', background: 'var(--bg-glass)', backdropFilter: 'var(--glass)', padding: '40px', borderRadius: '20px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)'}}>
+          <div style={{textAlign: 'center', marginBottom: '30px'}}>
+            <img src={logo} alt="Desi Hut MJM Logo" style={{width: '100px', marginBottom: '15px'}} />
+            {message && (
+              <div style={{background: 'rgba(255, 140, 0, 0.1)', color: 'var(--primary)', padding: '12px 20px', borderRadius: '12px', marginBottom: '25px', border: '1px solid var(--primary)', fontSize: '0.95rem', fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}>
+                <AlertCircle size={18} />
+                {message}
+              </div>
+            )}
+            <h2>{isLogin ? 'Login to Your Account' : 'Create an Account'}</h2>
+            <p style={{color: 'var(--text-muted)'}}>{isLogin ? 'Welcome back! Please enter your details.' : 'Join us to enjoy exclusive benefits.'}</p>
+          </div>
+          <form onSubmit={handleAuth}>
             {!isLogin && (
               <div className="form-group">
                 <label>Full Name</label>
@@ -810,6 +857,7 @@ const Footer = () => {
 
 function App() {
   const [adminUser, setAdminUser] = useState(null)
+  const [user, setUser] = useState(null)
   const [cart, setCart] = useState([])
   const [loading, setLoading] = useState(true)
   const [fading, setFading] = useState(false)
@@ -839,14 +887,25 @@ function App() {
     return () => clearTimeout(timer)
   }, [])
 
-  const handleLogout = async () => {
+  const handleLogoutAll = async () => {
     await supabase.auth.signOut()
     setAdminUser(null)
+    setUser(null)
   }
 
   const clearCart = () => setCart([])
   
+  const navigate = useNavigate()
+
   const addToCart = (product) => {
+    if (adminUser) {
+      alert('Admins cannot place orders. Please use a customer account.')
+      return
+    }
+    if (!user) {
+      navigate('/login', { state: { message: 'To order, please login first.' } })
+      return
+    }
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id)
       if (existing) {
@@ -874,13 +933,13 @@ function App() {
     <div className="app-wrapper">
       {loading && <Loader fading={fading} />}
       <CookieConsent />
-      <Navbar cartCount={cart.reduce((s, i) => s + i.quantity, 0)} />
+      <Navbar cartCount={cart.reduce((s, i) => s + i.quantity, 0)} user={user} adminUser={adminUser} onLogout={handleLogoutAll} />
       <main>
         <Routes>
           <Route path="/" element={<Home addToCart={addToCart} products={products} />} />
           <Route path="/menu" element={<MenuPage addToCart={addToCart} products={products} />} />
-          <Route path="/cart" element={<CartPage cart={cart} updateQuantity={updateQuantity} removeFromCart={removeFromCart} />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/cart" element={<CartPage cart={cart} updateQty={updateQuantity} removeItem={removeFromCart} />} />
+          <Route path="/login" element={<LoginPage onLogin={setUser} />} />
           <Route path="/checkout" element={<CheckoutPage cart={cart} clearCart={clearCart} />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/about" element={<AboutUs />} />
@@ -888,7 +947,7 @@ function App() {
           <Route path="/terms" element={<TermsOfService />} />
           <Route 
             path="/admin/*" 
-            element={adminUser ? <AdminDashboard user={adminUser} onLogout={handleLogout} onRefresh={fetchProducts} /> : <AdminLogin onLogin={setAdminUser} />} 
+            element={adminUser ? <AdminDashboard user={adminUser} onLogout={handleLogoutAll} onRefresh={fetchProducts} /> : <AdminLogin onLogin={setAdminUser} />} 
           />
         </Routes>
       </main>

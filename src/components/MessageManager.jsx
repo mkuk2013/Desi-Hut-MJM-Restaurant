@@ -24,13 +24,23 @@ const MessageManager = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this message?')) {
-      const { error } = await supabase
-        .from('messages')
-        .delete()
-        .eq('id', id)
-      
-      if (error) alert('Error deleting message: ' + error.message)
-      else fetchMessages()
+      try {
+        const { data, error } = await supabase
+          .from('messages')
+          .delete()
+          .eq('id', id)
+          .select()
+        
+        if (error) {
+          alert('Error deleting message: ' + error.message)
+        } else if (!data || data.length === 0) {
+          alert('Delete command succeeded but 0 rows were deleted. This usually means a permissions (RLS) issue or the message ID (' + id + ') was not found.')
+        } else {
+          fetchMessages()
+        }
+      } catch (err) {
+        alert('Exception during delete: ' + err.message)
+      }
     }
   }
 

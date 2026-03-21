@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { Lock, Mail, AlertCircle, Loader2 } from 'lucide-react'
+import logo from '../assets/logo.png'
 
 const AdminLogin = ({ onLogin }) => {
   const [email, setEmail] = useState('')
@@ -30,6 +31,7 @@ const AdminLogin = ({ onLogin }) => {
     <div className="admin-login-page section-padding" style={{minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
       <div className="auth-card" style={{width: '100%', maxWidth: '400px', background: 'var(--bg-glass)', backdropFilter: 'var(--glass)', padding: '40px', borderRadius: '16px', border: '1px solid var(--border)', boxShadow: '0 20px 40px rgba(0,0,0,0.3)'}}>
         <div style={{textAlign: 'center', marginBottom: '30px'}}>
+          <img src={logo} alt="Desi Hut MJM Logo" style={{width: '80px', marginBottom: '15px'}} />
           <div style={{width: '60px', height: '60px', background: 'var(--primary-glow)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px', color: 'var(--primary)'}}>
             <Lock size={30} />
           </div>
