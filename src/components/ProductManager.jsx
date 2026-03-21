@@ -57,15 +57,40 @@ const ProductManager = ({ onRefresh }) => {
         <h3>Menu Items Management</h3>
         <div style={{display: 'flex', gap: '10px'}}>
           <button className="btn-outline" onClick={async () => {
-            if(window.confirm('Seed database with initial menu data?')) {
-              const { menuData: initialData } = await import('../lib/menuData')
-              const cleanData = initialData.map(({ id, ...rest }) => rest)
-              const { error } = await supabase.from('products').insert(cleanData)
-              if (error) alert(error.message)
-              else {
-                alert('Database seeded successfully!')
+            if(window.confirm('This will CLEAR existing products and seed the database with initial menu data. Proceed?')) {
+              try {
+                setLoading(true)
+                // 1. Clear existing data
+                const { error: deleteError } = await supabase.from('products').delete().gte('id', 0)
+                if (deleteError) throw deleteError
+
+                // 2. Import and sanitize initial data
+                const { menuData: initialData } = await import('../lib/menuData')
+                const cleanData = initialData.map(({ id, ...rest }) => {
+                  // Sanitize strings
+                  const sanitized = {}
+                  Object.keys(rest).forEach(key => {
+                    if (typeof rest[key] === 'string') {
+                      sanitized[key] = rest[key].trim().replace(/[\n\r]/g, ' ')
+                    } else {
+                      sanitized[key] = rest[key]
+                    }
+                  })
+                  return sanitized
+                })
+
+                // 3. Insert new data
+                const { error: insertError } = await supabase.from('products').insert(cleanData)
+                if (insertError) throw insertError
+
+                alert('Database cleared and seeded successfully!')
                 fetchProducts()
                 if (onRefresh) onRefresh()
+              } catch (err) {
+                alert('Seeding failed: ' + err.message)
+                console.error(err)
+              } finally {
+                setLoading(false)
               }
             }
           }}>Seed DB</button>

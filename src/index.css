@@ -222,7 +222,7 @@ button {
   font-size: 0.95rem;
 }
 
-.nav-links a:hover {
+.nav-links a:hover, .nav-links a.active {
   color: var(--primary);
 }
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Routes, Route, Link, useNavigate } from 'react-router-dom'
+import { Routes, Route, Link, NavLink, useNavigate } from 'react-router-dom'
 import { ShoppingCart, User, LogOut, Menu as MenuIcon, X, Phone, MapPin, Instagram, Facebook, Search, Filter, Plus, Minus, Trash2, Box, Utensils, CheckCircle } from 'lucide-react'
 import { menuData } from './lib/menuData'
 import { supabase } from './lib/supabase'
@@ -10,6 +10,7 @@ import OrderManager from './components/OrderManager'
 import AboutUs from './components/AboutUs'
 import PrivacyPolicy from './components/PrivacyPolicy'
 import TermsOfService from './components/TermsOfService'
+import MessageManager from './components/MessageManager'
 
 const Home = ({ addToCart, products = menuData }) => {
   const featuredItems = products.slice(0, 3)
@@ -96,7 +97,7 @@ const Home = ({ addToCart, products = menuData }) => {
           <div className="featured-grid">
             {featuredItems.map(item => (
               <div key={item.id} className="featured-card">
-                <div className="card-img" style={{background: `url(${item.image})`}}></div>
+                <div className="card-img" style={{background: `url("${item.image}")`}}></div>
                 <div className="card-body">
                   <h3>{item.name}</h3>
                   <p>{item.description}</p>
@@ -148,7 +149,7 @@ const MenuPage = ({ addToCart, products = menuData }) => {
         <div className="menu-grid">
           {filteredItems.map(item => (
             <div key={item.id} className="menu-card">
-              <div className="card-img" style={{background: `url(${item.image})`}}></div>
+              <div className="card-img" style={{background: `url("${item.image}")`}}></div>
               <div className="card-info">
                 <div className="card-head">
                   <h3>{item.name}</h3>
@@ -187,10 +188,10 @@ const Navbar = ({ cartCount }) => {
           <img src={logo} alt="Desi Hut Logo" className="logo-img" style={{height: '65px', borderRadius: '50%'}} />
         </Link>
         <div className={`nav-links ${isMobileMenuOpen ? 'open' : ''}`}>
-          <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
-          <Link to="/menu" onClick={() => setIsMobileMenuOpen(false)}>Menu</Link>
-          <Link to="/about" onClick={() => setIsMobileMenuOpen(false)}>About Us</Link>
-          <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)}>Contact</Link>
+          <NavLink to="/" end onClick={() => setIsMobileMenuOpen(false)}>Home</NavLink>
+          <NavLink to="/menu" onClick={() => setIsMobileMenuOpen(false)}>Menu</NavLink>
+          <NavLink to="/about" onClick={() => setIsMobileMenuOpen(false)}>About Us</NavLink>
+          <NavLink to="/contact" onClick={() => setIsMobileMenuOpen(false)}>Contact</NavLink>
         </div>
         <div className="nav-actions">
           <a href="https://www.facebook.com/p/Desi-Hut-MJM-Restaurant-61554675945365/" target="_blank" rel="noopener noreferrer" className="nav-icon" style={{color: 'var(--primary)'}}><Facebook size={20} /></a>
@@ -229,7 +230,7 @@ const CartPage = ({ cart, updateQty, removeItem }) => {
             <div className="cart-items">
               {cart.map(item => (
                 <div key={item.id} className="cart-item">
-                  <div className="item-img" style={{background: `url(${item.image})`}}></div>
+                  <div className="item-img" style={{background: `url("${item.image}")`}}></div>
                   <div className="item-details">
                     <h3>{item.name}</h3>
                     <p>Rs. {item.price.toLocaleString()}</p>
@@ -374,6 +375,26 @@ const CheckoutPage = ({ cart, clearCart }) => {
 }
 
 const ContactPage = () => {
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    
+    const { error } = await supabase.from('messages').insert([formData])
+    
+    setIsSubmitting(false)
+    if (error) {
+      alert('Error sending message: ' + error.message)
+    } else {
+      setSubmitted(true)
+      setFormData({ name: '', email: '', message: '' })
+      setTimeout(() => setSubmitted(false), 5000)
+    }
+  }
+
   return (
     <div className="contact-page section-padding fade-in" style={{marginTop: '80px'}}>
       <div className="container">
@@ -382,7 +403,7 @@ const ContactPage = () => {
           <p>Have a question or want to book a table? We're here to help.</p>
         </div>
         
-        <div className="contact-grid" style={{display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '60px', marginTop: '50px'}}>
+        <div className="contact-grid" style={{width: '100%', maxWidth: '1100px', margin: '50px auto 0', display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 2fr', gap: '50px'}}>
           <div className="contact-info-cards" style={{display: 'flex', flexDirection: 'column', gap: '20px'}}>
             <div className="contact-card" style={{background: 'var(--bg-card)', padding: '30px', borderRadius: '16px', border: '1px solid var(--border)'}}>
               <div style={{color: 'var(--primary)', marginBottom: '15px'}}><MapPin size={32} /></div>
@@ -402,22 +423,57 @@ const ContactPage = () => {
           </div>
 
           <div className="contact-form-container" style={{background: 'var(--bg-card)', padding: '40px', borderRadius: '20px', border: '1px solid var(--border)', boxShadow: '0 20px 40px rgba(0,0,0,0.2)'}}>
-            <h3>Send us a Message</h3>
-            <form style={{marginTop: '25px'}}>
-              <div className="form-group">
-                <label>Your Name</label>
-                <input type="text" placeholder="John Doe" style={{width: '100%', padding: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: '10px', color: 'white'}} />
+            {submitted ? (
+              <div style={{textAlign: 'center', padding: '40px 0'}}>
+                <div style={{width: '60px', height: '60px', background: 'var(--bg-glass)', color: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', border: '1px solid var(--primary)'}}>
+                   <CheckCircle size={30} />
+                </div>
+                <h3>Message Sent Successfully!</h3>
+                <p style={{color: 'var(--text-muted)', marginTop: '10px'}}>Thank you for contacting us. We will get back to you soon.</p>
+                <button onClick={() => setSubmitted(false)} className="btn-outline" style={{marginTop: '25px'}}>Send Another Message</button>
               </div>
-              <div className="form-group" style={{marginTop: '20px'}}>
-                <label>Email Address</label>
-                <input type="email" placeholder="john@example.com" style={{width: '100%', padding: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: '10px', color: 'white'}} />
-              </div>
-              <div className="form-group" style={{marginTop: '20px'}}>
-                <label>Message</label>
-                <textarea placeholder="How can we help you?" style={{width: '100%', padding: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: '10px', color: 'white', minHeight: '150px'}}></textarea>
-              </div>
-              <button disabled className="btn-primary" style={{width: '100%', marginTop: '30px', padding: '15px'}}>Send Message</button>
-            </form>
+            ) : (
+              <>
+                <h3>Send us a Message</h3>
+                <form style={{marginTop: '25px'}} onSubmit={handleSubmit}>
+                  <div className="form-group">
+                    <label>Your Name</label>
+                    <input 
+                      type="text" 
+                      placeholder="John Doe" 
+                      required 
+                      value={formData.name}
+                      onChange={e => setFormData({...formData, name: e.target.value})}
+                      style={{width: '100%', padding: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: '10px', color: 'white'}} 
+                    />
+                  </div>
+                  <div className="form-group" style={{marginTop: '20px'}}>
+                    <label>Email Address</label>
+                    <input 
+                      type="email" 
+                      placeholder="john@example.com" 
+                      required 
+                      value={formData.email}
+                      onChange={e => setFormData({...formData, email: e.target.value})}
+                      style={{width: '100%', padding: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: '10px', color: 'white'}} 
+                    />
+                  </div>
+                  <div className="form-group" style={{marginTop: '20px'}}>
+                    <label>Message</label>
+                    <textarea 
+                      placeholder="How can we help you?" 
+                      required 
+                      value={formData.message}
+                      onChange={e => setFormData({...formData, message: e.target.value})}
+                      style={{width: '100%', padding: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: '10px', color: 'white', minHeight: '150px'}}
+                    ></textarea>
+                  </div>
+                  <button type="submit" className="btn-primary" style={{width: '100%', marginTop: '30px', padding: '15px'}} disabled={isSubmitting}>
+                    {isSubmitting ? 'Sending...' : 'Send Message'}
+                  </button>
+                </form>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -483,10 +539,13 @@ const AdminDashboard = ({ user, onLogout, onRefresh }) => {
         <div className="admin-tabs" style={{display: 'flex', gap: '10px', marginBottom: '30px'}}>
           <button className={`tab-btn ${activeTab === 'orders' ? 'active' : ''}`} onClick={() => setActiveTab('orders')} style={{padding: '12px 30px', borderRadius: '10px', border: '1px solid var(--border)', background: activeTab === 'orders' ? 'var(--primary)' : 'var(--bg-glass)', color: 'white', cursor: 'pointer', fontWeight: 'bold'}}>Orders</button>
           <button className={`tab-btn ${activeTab === 'products' ? 'active' : ''}`} onClick={() => setActiveTab('products')} style={{padding: '12px 30px', borderRadius: '10px', border: '1px solid var(--border)', background: activeTab === 'products' ? 'var(--primary)' : 'var(--bg-glass)', color: 'white', cursor: 'pointer', fontWeight: 'bold'}}>Products</button>
+          <button className={`tab-btn ${activeTab === 'messages' ? 'active' : ''}`} onClick={() => setActiveTab('messages')} style={{padding: '12px 30px', borderRadius: '10px', border: '1px solid var(--border)', background: activeTab === 'messages' ? 'var(--primary)' : 'var(--bg-glass)', color: 'white', cursor: 'pointer', fontWeight: 'bold'}}>Messages</button>
         </div>
 
         <div className="admin-content">
-          {activeTab === 'orders' ? <OrderManager /> : <ProductManager onRefresh={onRefresh} />}
+          {activeTab === 'orders' && <OrderManager />}
+          {activeTab === 'products' && <ProductManager onRefresh={onRefresh} />}
+          {activeTab === 'messages' && <MessageManager />}
         </div>
       </div>
     </div>
@@ -586,7 +645,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="footer-bottom">
-          <p>&copy; 2024 Desi Hut MJM Restaurant. Created with Passion.</p>
+          <p>&copy; {new Date().getFullYear()} Desi Hut MJM Restaurant. Created with Passion.</p>
           <div className="footer-legal-links">
             <Link to="/privacy">Privacy</Link>
             <Link to="/terms">Terms</Link>
