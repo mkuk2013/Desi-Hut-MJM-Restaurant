@@ -265,6 +265,43 @@ button {
   color: white;
 }
 
+/* Back to Top Button */
+.back-to-top {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 50px;
+  height: 50px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--transition);
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+}
+
+.back-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.back-to-top:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(255, 140, 0, 0.4);
+}
+
+/* Newsletter Section */
+.newsletter-section {
+  background: linear-gradient(135deg, var(--bg-card) 0%, rgba(255, 140, 0, 0.05) 100%);
+}
+
 /* Hero Section */
 .hero-section {
   height: 100vh;
@@ -524,7 +561,43 @@ button {
 }
 
 @media (max-width: 768px) {
-  .nav-links { display: none; }
+  .nav-links { 
+    display: none;
+    position: fixed;
+    top: 90px;
+    left: 0;
+    width: 100%;
+    background: var(--bg-card);
+    backdrop-filter: var(--glass);
+    flex-direction: column;
+    gap: 0;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+    z-index: 999;
+  }
+  
+  .nav-links.open {
+    display: flex;
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .nav-links a {
+    padding: 15px 30px;
+    border-bottom: 1px solid var(--border);
+    width: 100%;
+    text-align: center;
+  }
+  
+  .nav-links a:last-child {
+    border-bottom: none;
+  }
+  
   .mobile-toggle { display: block; }
   .hero-content h1 { font-size: 2.8rem; }
   .featured-grid { grid-template-columns: 1fr; }
@@ -574,6 +647,47 @@ button {
 .menu-card:hover {
   border-color: var(--primary);
   transform: scale(1.02);
+}
+
+/* Gallery Section */
+.gallery-item {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.gallery-item:hover img {
+  transform: scale(1.05);
+}
+
+.gallery-item:hover .gallery-overlay {
+  opacity: 1;
+}
+
+.gallery-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: var(--transition);
+  border-radius: 12px;
+}
+
+/* Testimonials Section */
+.testimonials-section {
+  background: var(--bg-dark);
+}
+
+.testimonial-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
 .menu-card .card-img {

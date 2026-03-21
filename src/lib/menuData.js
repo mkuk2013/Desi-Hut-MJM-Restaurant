@@ -1,40 +1,54 @@
-import iftarBoxImg from '../assets/iftar_box.png';
-
 export const menuData = [
   {
     id: 1,
+    name: 'Chicken Karahi',
+    description: 'Authentic Pakistani chicken karahi cooked with traditional spices, tomatoes, and green chilies.',
+    price: 1600,
+    category: 'Chicken Specialties',
+    image: 'https://images.unsplash.com/photo-1583132333871-f4e6b6b9a52a?auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    id: 2,
+    name: 'BBQ Platter',
+    description: 'Assortment of grilled chicken tikka, seekh kebabs, and malai boti served with chutney.',
+    price: 2200,
+    category: 'Barbecue',
+    image: 'https://images.unsplash.com/photo-1617196033305-1657a5c67645?auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    id: 3,
     name: 'Special Mix Chicken Handi',
     description: 'Our signature chicken handi prepared with traditional spices in a clay pot. Served with love.',
     price: 1800,
     category: 'Chicken Specialties',
-    image: 'https://lh3.googleusercontent.com/gps-cs-s/AHVAweoK2quOU4j6_741FKtdofOdXDE48cYtsP3NboXAycdJVAoHaxWKCAhMgpEt0_d-2eaVuKQJGNbWYeM-04dZ8d9ZPqMOXlEMC7pWoh637YyvvbR4SypcznrUqIxJZijid-oFtPHhFg=s1600'
+    image: 'https://images.unsplash.com/photo-1562967916-eb82221dfb45?auto=format&fit=crop&w=1000&q=80'
   },
   {
-    id: 2,
+    id: 4,
     name: 'Deal #02 (Handi Meal)',
     description: '1 Full Chicken Handi, 4 Fresh Tandoori Rotis, Raita, and Fresh Salad.',
     price: 2100,
     category: 'Deals',
-    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1533260685495-3a1e756a1f61?auto=format&fit=crop&w=1000&q=80'
   },
   {
-    id: 3,
+    id: 5,
     name: 'Deal #04 (Daal Mash Meal)',
     description: '1 Special Daal Mash, 2 Tandoori Rotis, Raita, and Salad.',
     price: 1450,
     category: 'Deals',
-    image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1581896501219-74f89f1fede9?auto=format&fit=crop&w=1000&q=80'
   },
   {
-    id: 4,
+    id: 6,
     name: 'Special Iftar Box (Ramzan)',
     description: 'Includes Khajoor, Pakoras, Samosas, Rolls, and a refreshing drink.',
     price: 850,
     category: 'Ramzan Specials',
-    image: iftarBoxImg
+    image: 'https://images.unsplash.com/photo-1541560052-f5e30ab72d7d?auto=format&fit=crop&w=1000&q=80'
   },
   {
-    id: 5,
+    id: 7,
     name: 'Desi Hut Special Mutton Karahi',
     description: 'Premium mutton cooked in traditional desi style with juicy tomatoes and aromatic spices.',
     price: 3200,
@@ -42,7 +56,7 @@ export const menuData = [
     image: 'https://images.unsplash.com/photo-1603496987351-f84a3ba5ec85?auto=format&fit=crop&w=800&q=80'
   },
   {
-    id: 6,
+    id: 8,
     name: 'Tiffin Service (Monthly)',
     description: 'Homemade style meals delivered daily to your workplace or home in Umerkot.',
     price: 12000,
@@ -50,7 +64,7 @@ export const menuData = [
     image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=800&q=80'
   },
   {
-    id: 7,
+    id: 9,
     name: 'Chicken Tikka (Chest)',
     description: 'Succulent chicken piece marinated in secret yogurt spices and grilled over hot charcoal.',
     price: 450,

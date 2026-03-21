@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Routes, Route, Link, NavLink, useNavigate } from 'react-router-dom'
-import { ShoppingCart, User, LogOut, Menu as MenuIcon, X, Phone, MapPin, Instagram, Facebook, Search, Filter, Plus, Minus, Trash2, Box, Utensils, CheckCircle } from 'lucide-react'
+import { ShoppingCart, User, LogOut, Menu as MenuIcon, X, Phone, MapPin, Instagram, Facebook, Search, Filter, Plus, Minus, Trash2, Box, Utensils, CheckCircle, MessageCircle, ChevronUp } from 'lucide-react'
 import { menuData } from './lib/menuData'
 import { supabase } from './lib/supabase'
 import logo from './assets/logo.png'
@@ -12,6 +12,40 @@ import PrivacyPolicy from './components/PrivacyPolicy'
 import TermsOfService from './components/TermsOfService'
 import MessageManager from './components/MessageManager'
 
+const BackToTop = () => {
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    const toggleVisibility = () => {
+      if (window.pageYOffset > 300) {
+        setIsVisible(true)
+      } else {
+        setIsVisible(false)
+      }
+    }
+
+    window.addEventListener('scroll', toggleVisibility)
+    return () => window.removeEventListener('scroll', toggleVisibility)
+  }, [])
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    })
+  }
+
+  return (
+    <button 
+      className={`back-to-top ${isVisible ? 'visible' : ''}`}
+      onClick={scrollToTop}
+      aria-label="Back to top"
+    >
+      <ChevronUp size={24} />
+    </button>
+  )
+}
+
 const Home = ({ addToCart, products = menuData }) => {
   const featuredItems = products.slice(0, 3)
   
@@ -20,7 +54,7 @@ const Home = ({ addToCart, products = menuData }) => {
       {/* Hero Section */}
       <section className="hero-section">
         <div className="container">
-          <div className="hero-content">
+          <div className="hero-content" data-aos="fade-up">
             <span className="hero-tag">Best BBQ & Handi in Umerkot</span>
             <h1>Savor the Authentic Flavors of <span className="text-primary">Desi Hut</span></h1>
             <p>From sizzling kebabs to aromatic karahis, we bring you the finest Pakistani cuisine crafted with tradition and passion.</p>
@@ -35,22 +69,22 @@ const Home = ({ addToCart, products = menuData }) => {
       {/* Why Choose Us */}
       <section className="why-us section-padding">
         <div className="container">
-          <div className="section-header">
+          <div className="section-header" data-aos="fade-up">
             <h2>Why Desi Hut?</h2>
             <p>We pride ourselves on quality and tradition.</p>
           </div>
           <div className="features-grid" style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '30px', marginTop: '40px'}}>
-            <div className="feature-card" style={{background: 'var(--bg-glass)', padding: '30px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', backdropFilter: 'var(--glass)', textAlign: 'center'}}>
+            <div className="feature-card" style={{background: 'var(--bg-glass)', padding: '30px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', backdropFilter: 'var(--glass)', textAlign: 'center'}} data-aos="fade-up" data-aos-delay="100">
               <div style={{color: 'var(--primary)', marginBottom: '15px'}}><Search size={32} /></div>
               <h3>Fresh Ingredients</h3>
               <p>Hand-picked spices and the freshest meat delivered daily to our kitchen.</p>
             </div>
-            <div className="feature-card" style={{background: 'var(--bg-glass)', padding: '30px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', backdropFilter: 'var(--glass)', textAlign: 'center'}}>
+            <div className="feature-card" style={{background: 'var(--bg-glass)', padding: '30px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', backdropFilter: 'var(--glass)', textAlign: 'center'}} data-aos="fade-up" data-aos-delay="200">
               <div style={{color: 'var(--primary)', marginBottom: '15px'}}><Phone size={32} /></div>
               <h3>Fast Delivery</h3>
               <p>Sizzling food delivered right to your doorstep in Umerkot within minutes.</p>
             </div>
-            <div className="feature-card" style={{background: 'var(--bg-glass)', padding: '30px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', backdropFilter: 'var(--glass)', textAlign: 'center'}}>
+            <div className="feature-card" style={{background: 'var(--bg-glass)', padding: '30px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', backdropFilter: 'var(--glass)', textAlign: 'center'}} data-aos="fade-up" data-aos-delay="300">
               <div style={{color: 'var(--primary)', marginBottom: '15px'}}><User size={32} /></div>
               <h3>Master Chefs</h3>
               <p>Our chefs have decades of experience in traditional Pakistani BBQ and Handi.</p>
@@ -63,13 +97,13 @@ const Home = ({ addToCart, products = menuData }) => {
       <section className="about-section section-padding">
         <div className="container">
           <div className="about-grid" style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '60px', alignItems: 'center'}}>
-            <div className="about-img" style={{position: 'relative'}}>
+            <div className="about-img" style={{position: 'relative'}} data-aos="fade-right">
               <img src="https://lh3.googleusercontent.com/gps-cs-s/AHVAwer3nCGFK5LjJehZVNeKUfJwk0b1eIGeheL2bGX6lEZbUytAJJjVF8ipNxHlIiOe5Kq-26csFkjfjR6nUl05X_1mGmiDu0bfs0gZgVauedpdJRoXLj_Yavm3qkqYvY7Eix693Z-d=s1600" alt="Desi Hut Storefront" style={{width: '100%', borderRadius: '20px', boxShadow: '0 20px 40px rgba(0,0,0,0.4)'}} />
               <div style={{position: 'absolute', bottom: '-20px', right: '-20px', background: 'var(--primary)', color: 'white', padding: '20px', borderRadius: '15px', fontWeight: 'bold', fontSize: '1.2rem', textAlign: 'center'}}>
                 Established <br/> Premium Taste
               </div>
             </div>
-            <div className="about-text">
+            <div className="about-text" data-aos="fade-left">
               <span className="hero-tag">Our Story</span>
               <h2>No Compromise on <span className="text-primary">Quality & Quantity</span></h2>
               <p style={{fontSize: '1.1rem', lineHeight: '1.8', color: 'var(--text-muted)', marginBottom: '25px'}}>
@@ -82,6 +116,84 @@ const Home = ({ addToCart, products = menuData }) => {
                 <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}><CheckCircle size={20} className="text-primary" /> Home Delivery</div>
               </div>
               <Link to="/menu" className="btn-primary" style={{marginTop: '35px', display: 'inline-block'}}>Experience the Taste</Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Gallery Section */}
+      <section className="gallery-section section-padding">
+        <div className="container">
+          <div className="section-header" data-aos="fade-up" style={{textAlign: 'center', marginBottom: '60px'}}>
+            <h2>Our <span className="text-primary">Signature Dishes</span></h2>
+            <p>Take a look at our delicious creations that will make your mouth water.</p>
+          </div>
+          <div className="gallery-grid" style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px'}}>
+            <div className="gallery-item" data-aos="zoom-in" data-aos-delay="100">
+              <img loading="lazy" src="/images/Karahi.jpg" alt="Authentic Karahi" style={{width: '100%', height: '280px', objectFit: 'cover', borderRadius: '12px', transition: 'var(--transition)'}} />
+              <div className="gallery-overlay" style={{position: 'absolute', top: '0', left: '0', right: '0', bottom: '0', background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'var(--transition)', borderRadius: '12px'}}>
+                <h4 style={{color: 'white', margin: '0'}}>Authentic Karahi</h4>
+              </div>
+            </div>
+            <div className="gallery-item" data-aos="zoom-in" data-aos-delay="200">
+              <img loading="lazy" src="/images/dal-chawal.jpg" alt="Traditional Dal Chawal" style={{width: '100%', height: '280px', objectFit: 'cover', borderRadius: '12px', transition: 'var(--transition)'}} />
+              <div className="gallery-overlay" style={{position: 'absolute', top: '0', left: '0', right: '0', bottom: '0', background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'var(--transition)', borderRadius: '12px'}}>
+                <h4 style={{color: 'white', margin: '0'}}>Traditional Dal Chawal</h4>
+              </div>
+            </div>
+            <div className="gallery-item" data-aos="zoom-in" data-aos-delay="300">
+              <img loading="lazy" src="/images/veg-nonveg-thali.jpg" alt="Veg & Non-Veg Thali" style={{width: '100%', height: '280px', objectFit: 'cover', borderRadius: '12px', transition: 'var(--transition)'}} />
+              <div className="gallery-overlay" style={{position: 'absolute', top: '0', left: '0', right: '0', bottom: '0', background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'var(--transition)', borderRadius: '12px'}}>
+                <h4 style={{color: 'white', margin: '0'}}>Veg & Non-Veg Thali</h4>
+              </div>
+            </div>
+            <div className="gallery-item" data-aos="zoom-in" data-aos-delay="400">
+              <img loading="lazy" src="/images/veg-nonveg-handi.jpg" alt="Special Handi" style={{width: '100%', height: '280px', objectFit: 'cover', borderRadius: '12px', transition: 'var(--transition)'}} />
+              <div className="gallery-overlay" style={{position: 'absolute', top: '0', left: '0', right: '0', bottom: '0', background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'var(--transition)', borderRadius: '12px'}}>
+                <h4 style={{color: 'white', margin: '0'}}>Special Handi</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="testimonials-section section-padding" style={{background: 'var(--bg-dark)'}}>
+        <div className="container">
+          <div className="section-header" data-aos="fade-up" style={{textAlign: 'center', marginBottom: '60px'}}>
+            <h2>What Our <span className="text-primary">Customers Say</span></h2>
+            <p>Don't just take our word for it - hear from our satisfied customers.</p>
+          </div>
+          <div className="testimonials-grid" style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px'}}>
+            <div className="testimonial-card" style={{background: 'var(--bg-card)', padding: '30px', borderRadius: '16px', border: '1px solid var(--border)', textAlign: 'center'}} data-aos="fade-up" data-aos-delay="100">
+              <div style={{color: 'var(--primary)', marginBottom: '15px'}}>
+                ⭐⭐⭐⭐⭐
+              </div>
+              <p style={{color: 'var(--text-main)', fontSize: '1rem', lineHeight: '1.6', marginBottom: '20px', fontStyle: 'italic'}}>
+                "The BBQ here is absolutely amazing! The meat is so tender and flavorful. Best Pakistani food in Umerkot!"
+              </p>
+              <div style={{color: 'var(--primary)', fontWeight: '600'}}>- Ahmed Khan</div>
+              <div style={{color: 'var(--text-muted)', fontSize: '0.9rem'}}>Regular Customer</div>
+            </div>
+            <div className="testimonial-card" style={{background: 'var(--bg-card)', padding: '30px', borderRadius: '16px', border: '1px solid var(--border)', textAlign: 'center'}} data-aos="fade-up" data-aos-delay="200">
+              <div style={{color: 'var(--primary)', marginBottom: '15px'}}>
+                ⭐⭐⭐⭐⭐
+              </div>
+              <p style={{color: 'var(--text-main)', fontSize: '1rem', lineHeight: '1.6', marginBottom: '20px', fontStyle: 'italic'}}>
+                "Their Handi is authentic and delicious. Fast delivery and excellent service. Highly recommended!"
+              </p>
+              <div style={{color: 'var(--primary)', fontWeight: '600'}}>- Fatima Bibi</div>
+              <div style={{color: 'var(--text-muted)', fontSize: '0.9rem'}}>Food Blogger</div>
+            </div>
+            <div className="testimonial-card" style={{background: 'var(--bg-card)', padding: '30px', borderRadius: '16px', border: '1px solid var(--border)', textAlign: 'center'}} data-aos="fade-up" data-aos-delay="300">
+              <div style={{color: 'var(--primary)', marginBottom: '15px'}}>
+                ⭐⭐⭐⭐⭐
+              </div>
+              <p style={{color: 'var(--text-main)', fontSize: '1rem', lineHeight: '1.6', marginBottom: '20px', fontStyle: 'italic'}}>
+                "Great quality food and very reasonable prices. The kebabs are juicy and perfectly spiced. Will order again!"
+              </p>
+              <div style={{color: 'var(--primary)', fontWeight: '600'}}>- Muhammad Ali</div>
+              <div style={{color: 'var(--text-muted)', fontSize: '0.9rem'}}>Local Resident</div>
             </div>
           </div>
         </div>
@@ -194,7 +306,6 @@ const Navbar = ({ cartCount }) => {
           <NavLink to="/contact" onClick={() => setIsMobileMenuOpen(false)}>Contact</NavLink>
         </div>
         <div className="nav-actions">
-          <a href="https://www.facebook.com/p/Desi-Hut-MJM-Restaurant-61554675945365/" target="_blank" rel="noopener noreferrer" className="nav-icon" style={{color: 'var(--primary)'}}><Facebook size={20} /></a>
           <Link to="/login" className="nav-icon"><User size={20} /></Link>
           <Link to="/cart" className="nav-icon cart-trigger">
             <ShoppingCart size={20} />
@@ -413,16 +524,36 @@ const ContactPage = () => {
             <div className="contact-card" style={{background: 'var(--bg-card)', padding: '30px', borderRadius: '16px', border: '1px solid var(--border)'}}>
               <div style={{color: 'var(--primary)', marginBottom: '15px'}}><Phone size={32} /></div>
               <h4 style={{marginBottom: '10px'}}>Call Us</h4>
-              <p style={{color: 'var(--text-muted)'}}>0307-3431191<br/>0311-6944779<br/>0316-8560600</p>
+              <div style={{color: 'var(--text-muted)'}}>
+                <a href="tel:03073431191" style={{display: 'block', marginBottom: '5px', color: 'var(--text-muted)', textDecoration: 'none'}}>0307-3431191</a>
+                <a href="tel:03116944779" style={{display: 'block', marginBottom: '5px', color: 'var(--text-muted)', textDecoration: 'none'}}>0311-6944779</a>
+                <a href="tel:03168560600" style={{display: 'block', color: 'var(--text-muted)', textDecoration: 'none'}}>0316-8560600</a>
+              </div>
             </div>
             <div className="contact-card" style={{background: 'var(--bg-card)', padding: '30px', borderRadius: '16px', border: '1px solid var(--border)'}}>
               <div style={{color: 'var(--primary)', marginBottom: '15px'}}><User size={32} /></div>
               <h4 style={{marginBottom: '10px'}}>Email Us</h4>
-              <p style={{color: 'var(--text-muted)'}}>desihut.mjm@gmail.com</p>
+              <a href="mailto:desihut.mjm@gmail.com" style={{color: 'var(--text-muted)', textDecoration: 'none'}}>desihut.mjm@gmail.com</a>
+            </div>
+            <div className="contact-card" style={{background: 'var(--bg-card)', padding: '30px', borderRadius: '16px', border: '1px solid var(--border)'}}>
+              <div style={{color: 'var(--primary)', marginBottom: '15px'}}><MessageCircle size={32} /></div>
+              <h4 style={{marginBottom: '10px'}}>WhatsApp</h4>
+              <a href="https://wa.me/923073431191?text=Hello%20Desi%20Hut%20MJM%20Restaurant%2C%20I%20would%20like%20to%20inquire%20about..." target="_blank" rel="noopener noreferrer" style={{color: 'var(--text-muted)', textDecoration: 'none'}}>
+                Chat with us on WhatsApp
+              </a>
             </div>
           </div>
 
           <div className="contact-form-container" style={{background: 'var(--bg-card)', padding: '40px', borderRadius: '20px', border: '1px solid var(--border)', boxShadow: '0 20px 40px rgba(0,0,0,0.2)'}}>
+            <div style={{display: 'flex', gap: '15px', marginBottom: '30px', flexWrap: 'wrap'}}>
+              <a href="tel:03073431191" className="btn-outline" style={{flex: '1', minWidth: '120px', textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}>
+                <Phone size={18} /> Call Now
+              </a>
+              <a href="https://wa.me/923073431191?text=Hello%20Desi%20Hut%20MJM%20Restaurant" target="_blank" rel="noopener noreferrer" className="btn-primary" style={{flex: '1', minWidth: '120px', textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}>
+                <MessageCircle size={18} /> WhatsApp
+              </a>
+            </div>
+            
             {submitted ? (
               <div style={{textAlign: 'center', padding: '40px 0'}}>
                 <div style={{width: '60px', height: '60px', background: 'var(--bg-glass)', color: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', border: '1px solid var(--primary)'}}>
@@ -474,6 +605,26 @@ const ContactPage = () => {
                 </form>
               </>
             )}
+          </div>
+        </div>
+
+        {/* Map Section */}
+        <div className="map-section" style={{marginTop: '80px'}} data-aos="fade-up">
+          <div className="section-header" style={{textAlign: 'center', marginBottom: '40px'}}>
+            <h2 style={{fontSize: '2.5rem'}}>Find Us <span className="text-primary">On Google Maps</span></h2>
+            <p>Visit us to experience the authentic taste of Desi Hut MJM Restaurant.</p>
+          </div>
+          <div style={{borderRadius: '20px', overflow: 'hidden', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)', background: 'var(--bg-glass)', backdropFilter: 'var(--glass)'}}>
+            <iframe 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3605.8413206868477!2d69.73346337538653!3d25.343105177617314!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x394f1f681d31977b%3A0x874cd764049543b5!2sDESI%20HUT%20mjm%20RESTAURANT!5e0!3m2!1sen!2s!4v1774083914381!5m2!1sen!2s" 
+              width="100%" 
+              height="450" 
+              style={{border: 0, display: 'block'}} 
+              allowFullScreen="" 
+              loading="lazy" 
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Desi Hut MJM Restaurant Location"
+            ></iframe>
           </div>
         </div>
       </div>
@@ -622,7 +773,7 @@ const Footer = () => {
             <ul className="footer-links">
               <li><Link to="/privacy">Privacy Policy</Link></li>
               <li><Link to="/terms">Terms of Service</Link></li>
-              <li><Link to="/">Contact Support</Link></li>
+              <li><Link to="/contact">Contact Support</Link></li>
             </ul>
           </div>
 
@@ -741,7 +892,43 @@ function App() {
           />
         </Routes>
       </main>
+      
+      {/* Newsletter Section */}
+      <section className="newsletter-section" style={{background: 'var(--bg-card)', padding: '80px 0', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)'}}>
+        <div className="container">
+          <div className="newsletter-content" style={{textAlign: 'center', maxWidth: '600px', margin: '0 auto'}} data-aos="fade-up">
+            <h2 style={{marginBottom: '15px'}}>Stay Updated</h2>
+            <p style={{color: 'var(--text-muted)', marginBottom: '30px', fontSize: '1.1rem'}}>
+              Subscribe to our newsletter for exclusive offers, new menu items, and special events.
+            </p>
+            <div className="newsletter-form" style={{display: 'flex', gap: '15px', maxWidth: '500px', margin: '0 auto', flexWrap: 'wrap'}}>
+              <input 
+                type="email" 
+                placeholder="Enter your email address" 
+                style={{
+                  flex: '1', 
+                  minWidth: '250px',
+                  padding: '15px 20px', 
+                  border: '1px solid var(--border)', 
+                  borderRadius: '50px', 
+                  background: 'rgba(255,255,255,0.05)', 
+                  color: 'var(--text-main)',
+                  fontSize: '1rem'
+                }} 
+              />
+              <button className="btn-primary" style={{padding: '15px 30px', borderRadius: '50px'}}>
+                Subscribe
+              </button>
+            </div>
+            <p style={{color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '15px'}}>
+              We respect your privacy. Unsubscribe at any time.
+            </p>
+          </div>
+        </div>
+      </section>
+      
       <Footer />
+      <BackToTop />
     </div>
   )
 }
