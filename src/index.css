@@ -1149,3 +1149,106 @@ button {
   50% { transform: scale(1.05); box-shadow: 0 0 50px rgba(255, 140, 0, 0.4); }
 }
 
+/* FAQ Section */
+.faq-item {
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.faq-item:hover {
+  border-color: var(--primary);
+  box-shadow: 0 4px 15px rgba(255, 140, 0, 0.1);
+}
+
+.faq-question {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+}
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.4s ease;
+  padding: 0 25px;
+  background: rgba(0,0,0,0.2);
+}
+
+.faq-item.active .faq-answer {
+  max-height: 200px;
+  padding: 0 25px 20px 25px;
+}
+
+.faq-answer p {
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0;
+  border-top: 1px solid var(--border);
+  padding-top: 15px;
+}
+
+/* --- Global Mobile Overrides --- */
+@media (max-width: 768px) {
+  /* Force 1-column layouts for completely fixed inline grids */
+  .about-grid, 
+  .form-grid, 
+  .stats-grid, 
+  .features-list, 
+  .payment-options {
+    grid-template-columns: 1fr !important;
+    gap: 25px !important;
+  }
+
+  /* Optimize About section layout for small screens */
+  .about-text {
+    text-align: center;
+  }
+  .about-text .features-list {
+    text-align: left; /* Keep features list readable */
+  }
+
+  /* Fix floating badge in About image */
+  .about-img > div {
+    right: 50% !important;
+    transform: translateX(50%);
+    bottom: -30px !important;
+    width: 80%;
+    font-size: 1rem !important;
+  }
+
+  /* Refine large text sizes */
+  .hero-content h1 {
+    font-size: 2.2rem !important;
+    line-height: 1.3;
+  }
+  .section-header h2 {
+    font-size: 2rem !important;
+  }
+
+  /* Soften huge paddings */
+  .section-padding {
+    padding: 60px 0 !important;
+  }
+
+  /* Fix modals & forms */
+  .tracker-modal, .checkout-container {
+    padding: 20px !important;
+  }
+
+  /* Perfect the lightbox on tiny vertical screens */
+  .lightbox-content {
+    padding: 40px 15px !important;
+  }
+  .lightbox-content img {
+    max-height: 45vh !important;
+  }
+  .lightbox-close {
+    top: 15px !important;
+    right: 15px !important;
+  }
+}

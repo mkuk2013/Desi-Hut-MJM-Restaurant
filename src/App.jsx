@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { ShoppingCart, User, LogOut, Menu as MenuIcon, X, Phone, MapPin, Instagram, Facebook, Search, Filter, Plus, Minus, Trash2, Box, Utensils, CheckCircle, MessageCircle, ChevronUp, AlertCircle } from 'lucide-react'
+import { ShoppingCart, User, LogOut, Menu as MenuIcon, X, Phone, MapPin, Instagram, Facebook, Search, Filter, Plus, Minus, Trash2, Box, Utensils, CheckCircle, MessageCircle, ChevronUp, ChevronDown, AlertCircle } from 'lucide-react'
 import { menuData } from './lib/menuData'
 import { supabase } from './lib/supabase'
 import logo from './assets/logo.png'
@@ -47,6 +47,7 @@ const BackToTop = () => {
 }
 
 const Home = ({ addToCart, products = menuData }) => {
+  const [selectedImage, setSelectedImage] = useState(null)
   const featuredItems = products.slice(0, 3)
   
   return (
@@ -129,25 +130,25 @@ const Home = ({ addToCart, products = menuData }) => {
             <p>Take a look at our delicious creations that will make your mouth water.</p>
           </div>
           <div className="gallery-grid" style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px'}}>
-            <div className="gallery-item" data-aos="zoom-in" data-aos-delay="100">
+            <div className="gallery-item" data-aos="zoom-in" data-aos-delay="100" onClick={() => setSelectedImage({src: '/images/Karahi.jpg', title: 'Authentic Karahi'})}>
               <img loading="lazy" src="/images/Karahi.jpg" alt="Authentic Karahi" style={{width: '100%', height: '280px', objectFit: 'cover', borderRadius: '12px', transition: 'var(--transition)'}} />
               <div className="gallery-overlay" style={{position: 'absolute', top: '0', left: '0', right: '0', bottom: '0', background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'var(--transition)', borderRadius: '12px'}}>
                 <h4 style={{color: 'white', margin: '0'}}>Authentic Karahi</h4>
               </div>
             </div>
-            <div className="gallery-item" data-aos="zoom-in" data-aos-delay="200">
+            <div className="gallery-item" data-aos="zoom-in" data-aos-delay="200" onClick={() => setSelectedImage({src: '/images/dal-chawal.jpg', title: 'Traditional Dal Chawal'})}>
               <img loading="lazy" src="/images/dal-chawal.jpg" alt="Traditional Dal Chawal" style={{width: '100%', height: '280px', objectFit: 'cover', borderRadius: '12px', transition: 'var(--transition)'}} />
               <div className="gallery-overlay" style={{position: 'absolute', top: '0', left: '0', right: '0', bottom: '0', background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'var(--transition)', borderRadius: '12px'}}>
                 <h4 style={{color: 'white', margin: '0'}}>Traditional Dal Chawal</h4>
               </div>
             </div>
-            <div className="gallery-item" data-aos="zoom-in" data-aos-delay="300">
+            <div className="gallery-item" data-aos="zoom-in" data-aos-delay="300" onClick={() => setSelectedImage({src: '/images/veg-nonveg-thali.jpg', title: 'Veg & Non-Veg Thali'})}>
               <img loading="lazy" src="/images/veg-nonveg-thali.jpg" alt="Veg & Non-Veg Thali" style={{width: '100%', height: '280px', objectFit: 'cover', borderRadius: '12px', transition: 'var(--transition)'}} />
               <div className="gallery-overlay" style={{position: 'absolute', top: '0', left: '0', right: '0', bottom: '0', background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'var(--transition)', borderRadius: '12px'}}>
                 <h4 style={{color: 'white', margin: '0'}}>Veg & Non-Veg Thali</h4>
               </div>
             </div>
-            <div className="gallery-item" data-aos="zoom-in" data-aos-delay="400">
+            <div className="gallery-item" data-aos="zoom-in" data-aos-delay="400" onClick={() => setSelectedImage({src: '/images/veg-nonveg-handi.jpg', title: 'Special Handi'})}>
               <img loading="lazy" src="/images/veg-nonveg-handi.jpg" alt="Special Handi" style={{width: '100%', height: '280px', objectFit: 'cover', borderRadius: '12px', transition: 'var(--transition)'}} />
               <div className="gallery-overlay" style={{position: 'absolute', top: '0', left: '0', right: '0', bottom: '0', background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'var(--transition)', borderRadius: '12px'}}>
                 <h4 style={{color: 'white', margin: '0'}}>Special Handi</h4>
@@ -226,6 +227,39 @@ const Home = ({ addToCart, products = menuData }) => {
           </div>
         </div>
       </section>
+
+      <FAQSection />
+
+      {/* Lightbox Modal */}
+      {selectedImage && (
+        <div 
+          className="lightbox-overlay fade-in" 
+          onClick={() => setSelectedImage(null)} 
+          style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(15px)', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px'}}
+        >
+          <div 
+            className="lightbox-content" 
+            onClick={e => e.stopPropagation()} 
+            style={{position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center'}}
+          >
+            <button 
+              className="lightbox-close" 
+              onClick={() => setSelectedImage(null)} 
+              title="Close"
+              style={{position: 'absolute', top: '-15px', right: '-15px', background: 'var(--primary)', border: '2px solid white', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer', zIndex: 10000, boxShadow: '0 4px 15px rgba(0,0,0,0.5)', transition: 'transform 0.2s ease'}}
+              onMouseOver={e => e.currentTarget.style.transform = 'scale(1.1)'}
+              onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              <X size={24} strokeWidth={2.5} />
+            </button>
+            <img src={selectedImage.src} alt={selectedImage.title} style={{maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: '8px', boxShadow: '0 30px 60px rgba(0,0,0,0.8)'}} />
+            
+            <div style={{marginTop: '20px', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', padding: '10px 30px', borderRadius: '50px', pointerEvents: 'none'}}>
+              <h3 style={{color: 'white', margin: 0, fontSize: '0.95rem', letterSpacing: '4px', textTransform: 'uppercase', fontWeight: '500'}}>{selectedImage.title}</h3>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -280,6 +314,59 @@ const MenuPage = ({ addToCart, products = menuData }) => {
         </div>
       </div>
     </div>
+  )
+}
+
+const FAQSection = () => {
+  const [activeIndex, setActiveIndex] = useState(null)
+  
+  const faqs = [
+    {
+      question: "What are your operating hours?",
+      answer: "We are open from 12:00 PM to 1:00 AM daily, serving lunch, dinner, and late-night cravings."
+    },
+    {
+      question: "Do you offer home delivery in Umerkot?",
+      answer: "Yes, we provide fast and reliable home delivery across Umerkot city. Your food arrives hot and fresh!"
+    },
+    {
+      question: "Can I book the restaurant for a private event?",
+      answer: "Absolutely! We offer catering and event bookings for birthdays, corporate events, and family gatherings. Please contact us to discuss special arrangements."
+    },
+    {
+      question: "What is your signature dish?",
+      answer: "Our Special Mix Chicken Handi and Desi Hut Special Mutton Karahi are our most famous signature dishes, prepared with authentic spices."
+    }
+  ]
+  
+  return (
+    <section className="faq-section section-padding" style={{background: 'var(--bg-dark)', borderTop: '1px solid var(--border)'}}>
+      <div className="container">
+        <div className="section-header" style={{textAlign: 'center', marginBottom: '50px'}} data-aos="fade-up">
+          <h2 style={{fontSize: '2.5rem'}}>Frequently Asked <span className="text-primary">Questions</span></h2>
+          <p style={{color: 'var(--text-muted)'}}>Got questions? We've got answers.</p>
+        </div>
+        <div className="faq-container" style={{maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '15px'}}>
+          {faqs.map((faq, index) => (
+            <div 
+              key={index} 
+              className={`faq-item ${activeIndex === index ? 'active' : ''}`}
+              onClick={() => setActiveIndex(activeIndex === index ? null : index)}
+              data-aos="fade-up"
+              data-aos-delay={index * 100}
+            >
+              <div className="faq-question">
+                <span style={{fontWeight: '600', fontSize: '1.1rem'}}>{faq.question}</span>
+                {activeIndex === index ? <ChevronUp className="text-primary" /> : <ChevronDown className="text-primary" />}
+              </div>
+              <div className="faq-answer">
+                <p>{faq.answer}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -862,7 +949,7 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [fading, setFading] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [products, setProducts] = useState(menuData)
+  const [products, setProducts] = useState([])
 
   const fetchProducts = async () => {
     const { data, error } = await supabase.from('products').select('*').order('id', { ascending: true })
