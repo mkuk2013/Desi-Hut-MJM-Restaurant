@@ -62,7 +62,7 @@ const Home = ({ addToCart, products = menuData }) => {
         <div className="container">
           <div className="hero-content" data-aos="fade-up">
             <span className="hero-tag">Best BBQ & Handi in Umerkot</span>
-            <h1>Savor the Authentic Flavors of <span className="text-primary">Desi Hut</span></h1>
+            <h1>Savor the Authentic Colors of <span className="text-primary">Desi Hut</span></h1>
             <p>From sizzling kebabs to aromatic karahis, we bring you the finest Pakistani cuisine crafted with tradition and passion.</p>
             <div className="hero-btns">
               <Link to="/menu" className="btn-primary">Order Now</Link>
