@@ -60,8 +60,10 @@ const OrderManager = () => {
           <div key={order.id} className="order-card" style={{background: 'var(--bg-card)', padding: '25px', borderRadius: '12px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '15px'}}>
             <div className="order-head" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
               <div>
-                <span style={{color: 'var(--text-muted)', fontSize: '0.85rem'}}>#{order.id.slice(0, 8)}</span>
+                <span style={{color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 'bold', display: 'block', marginBottom: '2px'}}>{order.tracking_id || 'No ID'}</span>
+                <span style={{color: 'var(--text-muted)', fontSize: '0.75rem'}}>UUID: #{order.id.slice(0, 8)}</span>
                 <h4 style={{marginTop: '5px'}}>{order.customer_name}</h4>
+                <p style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>{order.email}</p>
               </div>
               <div className="status-badge" style={{background: `${getStatusColor(order.status)}22`, color: getStatusColor(order.status), padding: '5px 15px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem', border: `1px solid ${getStatusColor(order.status)}`}}>
                 {order.status}

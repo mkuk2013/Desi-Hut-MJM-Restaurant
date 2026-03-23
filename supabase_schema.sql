@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS orders (
   items JSONB NOT NULL,
   total_amount NUMERIC NOT NULL,
   status TEXT DEFAULT 'Pending' CHECK (status IN ('Pending', 'Cooking', 'Out for Delivery', 'Delivered', 'Cancelled')),
+  email TEXT,
+  tracking_id TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -35,6 +37,9 @@ CREATE POLICY "Allow admin full access on products" ON products FOR ALL USING (a
 
 DROP POLICY IF EXISTS "Allow public insert on orders" ON orders;
 CREATE POLICY "Allow public insert on orders" ON orders FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public read access on orders via tracking_id" ON orders;
+CREATE POLICY "Allow public read access on orders via tracking_id" ON orders FOR SELECT USING (true);
 
 DROP POLICY IF EXISTS "Allow admin full access on orders" ON orders;
 CREATE POLICY "Allow admin full access on orders" ON orders FOR ALL USING (auth.role() = 'authenticated');
@@ -57,3 +62,25 @@ CREATE POLICY "Allow public insert on messages" ON messages FOR INSERT WITH CHEC
 
 DROP POLICY IF EXISTS "Allow admin full access on messages" ON messages;
 CREATE POLICY "Allow admin full access on messages" ON messages FOR ALL USING (auth.role() = 'authenticated');
+-- Create profiles table
+CREATE TABLE IF NOT EXISTS profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email TEXT NOT NULL,
+  full_name TEXT,
+  phone TEXT,
+  address TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS for profiles
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for profiles
+DROP POLICY IF EXISTS "Users can view their own profile" ON profiles;
+CREATE POLICY "Users can view their own profile" ON profiles FOR SELECT USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Users can update their own profile" ON profiles;
+CREATE POLICY "Users can update their own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Users can insert their own profile" ON profiles;
+CREATE POLICY "Users can insert their own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);

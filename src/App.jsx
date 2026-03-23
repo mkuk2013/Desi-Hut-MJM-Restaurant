@@ -11,6 +11,11 @@ import AboutUs from './components/AboutUs'
 import PrivacyPolicy from './components/PrivacyPolicy'
 import TermsOfService from './components/TermsOfService'
 import MessageManager from './components/MessageManager'
+import OrderTracking from './components/OrderTracking'
+import MyOrders from './components/MyOrders'
+import ProfilePage from './components/ProfilePage'
+import ForgotPassword from './components/ForgotPassword'
+import ResetPassword from './components/ResetPassword'
 
 const BackToTop = () => {
   const [isVisible, setIsVisible] = useState(false)
@@ -391,12 +396,18 @@ const Navbar = ({ cartCount, user, adminUser, onLogout }) => {
           <NavLink to="/menu" onClick={() => setIsMobileMenuOpen(false)}>Menu</NavLink>
           <NavLink to="/about" onClick={() => setIsMobileMenuOpen(false)}>About Us</NavLink>
           <NavLink to="/contact" onClick={() => setIsMobileMenuOpen(false)}>Contact</NavLink>
+          <NavLink to="/track-order" onClick={() => setIsMobileMenuOpen(false)}>Track Order</NavLink>
         </div>
         <div className="nav-actions">
           {user || adminUser ? (
             <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-              {adminUser && (
+              {adminUser ? (
                 <Link to="/admin" style={{fontSize: '0.85rem', color: '#fff', background: 'var(--primary)', padding: '5px 12px', borderRadius: '20px', textDecoration: 'none', fontWeight: 'bold'}}>Dashboard</Link>
+              ) : (
+                <div style={{display: 'flex', gap: '10px'}}>
+                  <Link to="/profile" style={{fontSize: '0.85rem', color: '#fff', background: 'rgba(255,255,255,0.1)', padding: '5px 12px', borderRadius: '20px', textDecoration: 'none', border: '1px solid var(--border)'}}>Profile</Link>
+                  <Link to="/my-orders" style={{fontSize: '0.85rem', color: '#fff', background: 'var(--primary)', padding: '5px 12px', borderRadius: '20px', textDecoration: 'none', fontWeight: 'bold'}}>My Orders</Link>
+                </div>
               )}
               <span className="user-badge" style={{fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 'bold', border: '1px solid var(--primary)', padding: '2px 8px', borderRadius: '12px'}}>
                 {adminUser ? 'Admin' : 'Logged In'}
@@ -491,32 +502,68 @@ const CartPage = ({ cart, updateQty, removeItem }) => {
 
 const CheckoutPage = ({ cart, clearCart }) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formData, setFormData] = useState({ name: '', phone: '', address: '' })
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', address: '' })
   const [method, setMethod] = useState('COD')
   const [isOrdered, setIsOrdered] = useState(false)
+  const [orderTrackingId, setOrderTrackingId] = useState('')
   const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+
+  const generateTrackingId = () => {
+    return 'DH-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+  }
 
   const handleOrder = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
     
+    const trackingId = generateTrackingId()
+    setOrderTrackingId(trackingId)
+
     const orderData = {
       customer_name: formData.name,
+      email: formData.email,
       phone: formData.phone,
       address: formData.address,
       payment_method: method,
       items: JSON.stringify(cart),
       total_amount: total,
-      status: 'Pending'
+      status: 'Pending',
+      tracking_id: trackingId
     }
 
     const { error } = await supabase.from('orders').insert([orderData])
     
-    setIsSubmitting(false)
     if (error) {
       alert('Error placing order: ' + error.message)
+      setIsSubmitting(false)
     } else {
+      // Send Email via EmailJS (Optional: catch errors but proceed)
+      try {
+        // Note: You need to replace these with your actual EmailJS credentials
+        // Use placeholders for now
+        /*
+        import emailjs from '@emailjs/browser';
+        await emailjs.send(
+          'YOUR_SERVICE_ID',
+          'YOUR_TEMPLATE_ID',
+          {
+            to_name: formData.name,
+            to_email: formData.email,
+            tracking_id: trackingId,
+            total_amount: total,
+            items: cart.map(item => `${item.name} x ${item.quantity}`).join(', '),
+            address: formData.address
+          },
+          'YOUR_PUBLIC_KEY'
+        );
+        */
+        console.log('Simulation: Email sent to ' + formData.email + ' with Tracking ID: ' + trackingId);
+      } catch (err) {
+        console.error('EmailJS Error:', err);
+      }
+
       setIsOrdered(true)
+      setIsSubmitting(false)
       setTimeout(() => clearCart(), 2000)
     }
   }
@@ -530,8 +577,15 @@ const CheckoutPage = ({ cart, clearCart }) => {
               <CheckCircle size={35} />
             </div>
             <h2 style={{color: 'var(--primary)', marginBottom: '15px'}}>Order Placed Successfully!</h2>
-            <p>Thank you for choosing Desi Hut MJM Restaurant. Your delicious meal is being prepared.</p>
-            <Link to="/" className="btn-primary" style={{marginTop: '30px', display: 'inline-block'}}>Back to Home</Link>
+            <div style={{background: 'rgba(255,140,0,0.1)', padding: '20px', borderRadius: '12px', marginBottom: '25px', display: 'inline-block', border: '1px dashed var(--primary)'}}>
+              <p style={{marginBottom: '5px', color: 'var(--text-muted)'}}>Your Tracking ID:</p>
+              <h3 style={{color: 'var(--primary)', letterSpacing: '2px'}}>{orderTrackingId}</h3>
+            </div>
+            <p>Thank you for choosing Desi Hut MJM Restaurant. An email with your tracking details has been sent to {formData.email}.</p>
+            <div style={{marginTop: '30px', display: 'flex', gap: '15px', justifyContent: 'center'}}>
+              <Link to={`/track-order?tid=${orderTrackingId}`} className="btn-primary">Track My Order</Link>
+              <Link to="/" className="btn-outline">Back to Home</Link>
+            </div>
           </div>
         </div>
       </div>
@@ -551,6 +605,10 @@ const CheckoutPage = ({ cart, clearCart }) => {
             <div className="form-group">
               <label>Full Name</label>
               <input type="text" placeholder="Enter your name" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label>Email Address</label>
+              <input type="email" placeholder="example@email.com" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
             </div>
             <div className="form-group">
               <label>Phone Number</label>
@@ -750,12 +808,48 @@ const LoginPage = ({ onLogin }) => {
   const location = useLocation()
   const message = location.state?.message
   
-  const handleAuth = (e) => {
+  const [formData, setFormData] = useState({ email: '', password: '', name: '' })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorStatus, setErrorStatus] = useState('')
+
+  const handleAuth = async (e) => {
     e.preventDefault()
-    // In a real app, this would be a Supabase auth call.
-    // For now, we'll simulate a successful login for the user.
-    onLogin({ name: 'Guest User', email: 'guest@example.com' })
-    navigate('/')
+    setIsSubmitting(true)
+    setErrorStatus('')
+
+    try {
+      if (isLogin) {
+        // Real Login
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        })
+        if (error) throw error
+        onLogin(data.user)
+      } else {
+        // Real Sign Up
+        const { data, error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: { full_name: formData.name }
+          }
+        })
+        if (error) throw error
+        if (data.user) {
+          // Create initial profile
+          await supabase.from('profiles').insert([{ id: data.user.id, email: data.user.email, full_name: formData.name }])
+          onLogin(data.user)
+          alert('Welcome! Your account has been created.')
+        }
+      }
+      navigate('/')
+    } catch (err) {
+      console.error('Auth error:', err)
+      setErrorStatus(err.message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -773,23 +867,45 @@ const LoginPage = ({ onLogin }) => {
             <h2>{isLogin ? 'Login to Your Account' : 'Create an Account'}</h2>
             <p style={{color: 'var(--text-muted)'}}>{isLogin ? 'Welcome back! Please enter your details.' : 'Join us to enjoy exclusive benefits.'}</p>
           </div>
-          <form onSubmit={handleAuth}>
-            {!isLogin && (
-              <div className="form-group">
-                <label>Full Name</label>
-                <input type="text" placeholder="Desi Foodie" />
+            {errorStatus && (
+              <div style={{background: 'rgba(255, 68, 68, 0.1)', color: '#ff4444', padding: '10px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #ff4444', fontSize: '0.85rem'}}>
+                {errorStatus}
               </div>
             )}
-            <div className="form-group">
-              <label>Email Address</label>
-              <input type="email" placeholder="email@example.com" required />
-            </div>
-            <div className="form-group">
-              <label>Password</label>
-              <input type="password" placeholder="••••••••" required />
-            </div>
-            <button className="btn-primary" style={{width: '100%', marginTop: '10px'}}>{isLogin ? 'Login' : 'Register'}</button>
-          </form>
+            <form onSubmit={handleAuth}>
+              {!isLogin && (
+                <div className="form-group">
+                  <label>Full Name</label>
+                  <input type="text" placeholder="Desi Foodie" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required={!isLogin} />
+                </div>
+              )}
+              <div className="form-group">
+                <label>Email Address</label>
+                <input 
+                  type="email" 
+                  placeholder="email@example.com" 
+                  required 
+                  value={formData.email}
+                  onChange={e => setFormData({...formData, email: e.target.value})}
+                />
+              </div>
+              <div className="form-group">
+                <label style={{display: 'flex', justifyContent: 'space-between'}}>
+                  Password
+                  {isLogin && <Link to="/forgot-password" style={{fontSize: '0.8rem', color: 'var(--primary)'}}>Forgot?</Link>}
+                </label>
+                <input 
+                  type="password" 
+                  placeholder="••••••••" 
+                  required 
+                  value={formData.password}
+                  onChange={e => setFormData({...formData, password: e.target.value})}
+                />
+              </div>
+              <button type="submit" className="btn-primary" style={{width: '100%', marginTop: '10px'}} disabled={isSubmitting}>
+                {isSubmitting ? (isLogin ? 'Logging in...' : 'Registering...') : (isLogin ? 'Login' : 'Register')}
+              </button>
+            </form>
           <div className="auth-footer">
             <p>
               {isLogin ? "Don't have an account?" : "Already have an account?"}
@@ -944,7 +1060,10 @@ const Footer = () => {
 
 function App() {
   const [adminUser, setAdminUser] = useState(null)
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('desi_hut_user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  })
   const [cart, setCart] = useState([])
   const [loading, setLoading] = useState(true)
   const [fading, setFading] = useState(false)
@@ -961,9 +1080,32 @@ function App() {
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      if (session) setAdminUser(session.user)
+      if (session) {
+        // Simple logic to check if they are admin or regular user
+        // Usually based on metadata or a roles table
+        if (session.user.email.includes('admin') || session.user.app_metadata?.role === 'admin') {
+          setAdminUser(session.user)
+        } else {
+          setUser(session.user)
+        }
+      }
     }
     checkUser()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        if (session.user.email.includes('admin') || session.user.app_metadata?.role === 'admin') {
+          setAdminUser(session.user)
+          setUser(null)
+        } else {
+          setUser(session.user)
+          setAdminUser(null)
+        }
+      } else {
+        setUser(null)
+        setAdminUser(null)
+      }
+    })
 
     fetchProducts()
     
@@ -971,13 +1113,26 @@ function App() {
       setFading(true)
       setTimeout(() => setLoading(false), 500)
     }, 1500)
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      subscription.unsubscribe()
+    }
   }, [])
 
   const handleLogoutAll = async () => {
     await supabase.auth.signOut()
+    localStorage.removeItem('desi_hut_user')
     setAdminUser(null)
     setUser(null)
+  }
+
+  const handleSetUser = (userData) => {
+    setUser(userData)
+    if (userData) {
+      localStorage.setItem('desi_hut_user', JSON.stringify(userData))
+    } else {
+      localStorage.removeItem('desi_hut_user')
+    }
   }
 
   const clearCart = () => setCart([])
@@ -1026,8 +1181,13 @@ function App() {
           <Route path="/" element={<Home addToCart={addToCart} products={products} />} />
           <Route path="/menu" element={<MenuPage addToCart={addToCart} products={products} />} />
           <Route path="/cart" element={<CartPage cart={cart} updateQty={updateQuantity} removeItem={removeFromCart} />} />
-          <Route path="/login" element={<LoginPage onLogin={setUser} />} />
           <Route path="/checkout" element={<CheckoutPage cart={cart} clearCart={clearCart} />} />
+          <Route path="/track-order" element={<OrderTracking />} />
+          <Route path="/profile" element={user ? <ProfilePage user={user} onUpdate={setUser} /> : <LoginPage onLogin={setUser} />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/my-orders" element={user ? <MyOrders userEmail={user.email} /> : <LoginPage onLogin={setUser} />} />
+          <Route path="/login" element={<LoginPage onLogin={setUser} />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
