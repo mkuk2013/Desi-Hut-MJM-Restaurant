@@ -5,8 +5,8 @@ export const WHATSAPP_NUMBER = '923073431191'
 export const FACEBOOK_URL = 'https://www.facebook.com/profile.php?id=61554675945365'
 
 // Emails allowed to open the admin panel (in addition to Supabase app_metadata role='admin').
-// IMPORTANT: add your own email here, e.g. ['myemail@gmail.com']
-export const ADMIN_EMAILS = []
+// Add more admin emails here as needed.
+export const ADMIN_EMAILS = ['mkuk2013@gmail.com']
 
 /** True if this user may access the admin panel. */
 export const isAdminUser = (user) =>
