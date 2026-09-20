@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { ShoppingCart, User, LogOut, Menu as MenuIcon, X, Phone, MapPin, Instagram, Facebook, Search, Filter, Plus, Minus, Trash2, Box, Utensils, CheckCircle, MessageCircle, ChevronUp, ChevronDown, AlertCircle } from 'lucide-react'
+import { ShoppingCart, User, LogOut, Menu as MenuIcon, X, Phone, MapPin, Instagram, Facebook, Search, Filter, Plus, Minus, Trash2, Box, Utensils, CheckCircle, MessageCircle, ChevronUp, ChevronDown, AlertCircle, Star } from 'lucide-react'
 import { menuData } from './lib/menuData'
 import { supabase } from './lib/supabase'
+import { buildWhatsAppLink } from './lib/siteConfig'
 import logo from './assets/logo.png'
 import AdminLogin from './components/AdminLogin'
 import ProductManager from './components/ProductManager'
@@ -51,6 +52,19 @@ const BackToTop = () => {
   )
 }
 
+const WhatsAppFloat = () => (
+  <a
+    href={buildWhatsAppLink('Hello Desi Hut MJM Restaurant! I would like to place an order.')}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="whatsapp-float"
+    aria-label="Chat with us on WhatsApp"
+    title="Order on WhatsApp"
+  >
+    <MessageCircle size={28} />
+  </a>
+)
+
 const Home = ({ addToCart, products = menuData }) => {
   const [selectedImage, setSelectedImage] = useState(null)
   const featuredItems = products.slice(0, 3)
@@ -59,14 +73,29 @@ const Home = ({ addToCart, products = menuData }) => {
     <div className="home-page fade-in">
       {/* Hero Section */}
       <section className="hero-section">
+        <div className="hero-glow" aria-hidden="true" />
         <div className="container">
           <div className="hero-content" data-aos="fade-up">
-            <span className="hero-tag">Best BBQ & Handi in Umerkot</span>
-            <h1>Savor the Authentic Flavors of <span className="text-primary">Desi Hut</span></h1>
-            <p>From sizzling kebabs to aromatic karahis, we bring you the finest Pakistani cuisine crafted with tradition and passion.</p>
+            <span className="hero-badge"><Star size={14} /> 4.9 Rated · Loved across Umerkot</span>
+            <h1>Fire-Kissed <span className="gradient-text">Desi Flavours</span>,<br />Delivered Hot to Your Door</h1>
+            <p className="hero-sub">From sizzling seekh kebabs to aromatic handis — authentic Pakistani cuisine crafted with tradition, passion, and zero compromise on quality.</p>
             <div className="hero-btns">
               <Link to="/menu" className="btn-primary">Order Now</Link>
-              <Link to="/menu" className="btn-outline">View Menu</Link>
+              <Link to="/menu" className="btn-outline">Explore Menu</Link>
+            </div>
+            <div className="hero-stats">
+              <div className="hero-stat">
+                <strong>4.9★</strong>
+                <span>Customer Rating</span>
+              </div>
+              <div className="hero-stat">
+                <strong>15+</strong>
+                <span>Signature Dishes</span>
+              </div>
+              <div className="hero-stat">
+                <strong>30 min</strong>
+                <span>Avg. Delivery in Umerkot</span>
+              </div>
             </div>
           </div>
         </div>
@@ -76,6 +105,7 @@ const Home = ({ addToCart, products = menuData }) => {
       <section className="why-us section-padding">
         <div className="container">
           <div className="section-header" data-aos="fade-up">
+            <span className="section-eyebrow">Our Promise</span>
             <h2>Why Desi Hut?</h2>
             <p>We pride ourselves on quality and tradition.</p>
           </div>
@@ -131,6 +161,7 @@ const Home = ({ addToCart, products = menuData }) => {
       <section className="gallery-section section-padding">
         <div className="container">
           <div className="section-header" data-aos="fade-up" style={{textAlign: 'center', marginBottom: '60px'}}>
+            <span className="section-eyebrow">Gallery</span>
             <h2>Our <span className="text-primary">Signature Dishes</span></h2>
             <p>Take a look at our delicious creations that will make your mouth water.</p>
           </div>
@@ -167,6 +198,7 @@ const Home = ({ addToCart, products = menuData }) => {
       <section className="testimonials-section section-padding" style={{background: 'var(--bg-dark)'}}>
         <div className="container">
           <div className="section-header" data-aos="fade-up" style={{textAlign: 'center', marginBottom: '60px'}}>
+            <span className="section-eyebrow">Reviews</span>
             <h2>What Our <span className="text-primary">Customers Say</span></h2>
             <p>Don't just take our word for it - hear from our satisfied customers.</p>
           </div>
@@ -209,20 +241,22 @@ const Home = ({ addToCart, products = menuData }) => {
       <section className="featured-section section-padding">
         <div className="container">
           <div className="section-header">
+            <span className="section-eyebrow">Chef's Picks</span>
             <h2>Our Signature Specialties</h2>
             <p>Hand-picked favorites that our customers love the most.</p>
           </div>
           <div className="featured-grid">
             {featuredItems.map(item => (
-              <div key={item.id} className="featured-card">
-                <div className="card-img" style={{background: `url("${item.image}")`}}></div>
+              <div key={item.id} className="featured-card" data-aos="fade-up">
+                <div className="card-img-wrap">
+                  <div className="card-img" style={{background: `url("${item.image}")`}}></div>
+                  <span className="price-badge">Rs. {item.price.toLocaleString()}</span>
+                </div>
                 <div className="card-body">
+                  <span className="cat-pill">{item.category}</span>
                   <h3>{item.name}</h3>
                   <p>{item.description}</p>
-                  <div className="card-footer">
-                    <span className="price">Rs. {item.price.toLocaleString()}</span>
-                    <button onClick={() => addToCart(item)} className="btn-add">Add to Cart</button>
-                  </div>
+                  <button onClick={() => addToCart(item)} className="btn-add">Add to Cart</button>
                 </div>
               </div>
             ))}
@@ -281,7 +315,8 @@ const MenuPage = ({ addToCart, products = menuData }) => {
     <div className="menu-page section-padding fade-in" style={{marginTop: '80px'}}>
       <div className="container">
         <div className="section-header">
-          <h2>Our Delicious Menu</h2>
+          <span className="section-eyebrow">Our Menu</span>
+          <h2>Delicious <span className="gradient-text">Choices</span></h2>
           <p>Explore our wide range of traditional and modern dishes.</p>
         </div>
 
@@ -348,6 +383,7 @@ const FAQSection = () => {
     <section className="faq-section section-padding" style={{background: 'var(--bg-dark)', borderTop: '1px solid var(--border)'}}>
       <div className="container">
         <div className="section-header" style={{textAlign: 'center', marginBottom: '50px'}} data-aos="fade-up">
+          <span className="section-eyebrow">Help Center</span>
           <h2 style={{fontSize: '2.5rem'}}>Frequently Asked <span className="text-primary">Questions</span></h2>
           <p style={{color: 'var(--text-muted)'}}>Got questions? We've got answers.</p>
         </div>
@@ -442,10 +478,17 @@ const Navbar = ({ cartCount, user, adminUser, onLogout }) => {
 const CartPage = ({ cart, updateQty, removeItem }) => {
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
+  const orderViaWhatsApp = () => {
+    const lines = cart.map(item => `- ${item.quantity}x ${item.name} (Rs. ${(item.price * item.quantity).toLocaleString()})`)
+    const message = `Hello Desi Hut! I would like to order:\n${lines.join('\n')}\nTotal: Rs. ${(total + 100).toLocaleString()}`
+    window.open(buildWhatsAppLink(message), '_blank', 'noopener')
+  }
+
   return (
     <div className="cart-page section-padding fade-in" style={{marginTop: '80px'}}>
       <div className="container">
         <div className="section-header">
+          <span className="section-eyebrow">Your Order</span>
           <h2>Your Food Cart</h2>
         </div>
 
@@ -492,6 +535,10 @@ const CartPage = ({ cart, updateQty, removeItem }) => {
                 <span>Rs. {(total + 100).toLocaleString()}</span>
               </div>
               <Link to="/checkout" className="btn-primary checkout-btn">Proceed to Checkout</Link>
+              <button onClick={orderViaWhatsApp} className="btn-whatsapp">
+                <MessageCircle size={18} /> Order on WhatsApp
+              </button>
+              <p className="wa-note">No login needed — order directly via WhatsApp</p>
             </div>
           </div>
         )}
@@ -596,7 +643,8 @@ const CheckoutPage = ({ cart, clearCart }) => {
     <div className="checkout-page section-padding fade-in" style={{marginTop: '80px'}}>
       <div className="container">
         <div className="section-header">
-          <h2 style={{fontSize: '2.5rem'}}>Checkout</h2>
+          <span className="section-eyebrow">Checkout</span>
+          <h2 style={{fontSize: '2.5rem'}}>Almost <span className="gradient-text">There</span></h2>
           <p style={{color: 'var(--text-muted)'}}>Provide your delivery details to enjoy the authentic taste of Desi Hut.</p>
         </div>
         <div className="checkout-container" style={{maxWidth: '1000px', margin: '0 auto'}}>
@@ -680,6 +728,7 @@ const ContactPage = () => {
     <div className="contact-page section-padding fade-in" style={{marginTop: '80px'}}>
       <div className="container">
         <div className="section-header">
+          <span className="section-eyebrow">Contact</span>
           <h2 style={{fontSize: '3rem'}}>Get In <span className="text-primary">Touch</span></h2>
           <p>Have a question or want to book a table? We're here to help.</p>
         </div>
@@ -1203,6 +1252,7 @@ function App() {
       <section className="newsletter-section" style={{background: 'var(--bg-card)', padding: '80px 0', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)'}}>
         <div className="container">
           <div className="newsletter-content" style={{textAlign: 'center', maxWidth: '600px', margin: '0 auto'}} data-aos="fade-up">
+            <span className="section-eyebrow">Newsletter</span>
             <h2 style={{marginBottom: '15px'}}>Stay Updated</h2>
             <p style={{color: 'var(--text-muted)', marginBottom: '30px', fontSize: '1.1rem'}}>
               Subscribe to our newsletter for exclusive offers, new menu items, and special events.
@@ -1234,6 +1284,7 @@ function App() {
       </section>
       
       <Footer />
+      <WhatsAppFloat />
       <BackToTop />
     </div>
   )
