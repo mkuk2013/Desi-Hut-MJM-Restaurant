@@ -110,7 +110,7 @@ const ProductManager = ({ onRefresh }) => {
             </div>
             <div className="form-group">
               <label>Price (Rs.)</label>
-              <input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: parseInt(e.target.value)})} placeholder="1200" />
+              <input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: (parseInt(e.target.value) || 0)})} placeholder="1200" />
             </div>
             <div className="form-group">
               <label>Category</label>

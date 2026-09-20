@@ -111,7 +111,7 @@ const MyOrders = ({ userEmail }) => {
                     {getStatusIcon(order.status)}
                   </div>
                   <div>
-                    <h4 style={{marginBottom: '5px'}}>Order #{order.tracking_id || order.id.slice(0, 8)}</h4>
+                    <h4 style={{marginBottom: '5px'}}>Order #{order.tracking_id || String(order.id).slice(0, 8)}</h4>
                     <p style={{fontSize: '0.85rem', color: 'var(--text-muted)'}}>
                       {new Date(order.created_at).toLocaleDateString()} at {new Date(order.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                     </p>

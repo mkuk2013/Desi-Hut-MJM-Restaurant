@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { ShoppingCart, User, LogOut, Menu as MenuIcon, X, Phone, MapPin, Instagram, Facebook, Search, Filter, Plus, Minus, Trash2, Box, Utensils, CheckCircle, MessageCircle, ChevronUp, ChevronDown, AlertCircle, Star } from 'lucide-react'
+import { ShoppingCart, User, LogOut, Menu as MenuIcon, X, Phone, MapPin, Facebook, Search, Filter, Plus, Minus, Trash2, Box, Utensils, CheckCircle, MessageCircle, ChevronUp, ChevronDown, AlertCircle, Star } from 'lucide-react'
 import { menuData } from './lib/menuData'
 import { supabase } from './lib/supabase'
-import { buildWhatsAppLink } from './lib/siteConfig'
+import { buildWhatsAppLink, isAdminUser, FACEBOOK_URL } from './lib/siteConfig'
 import logo from './assets/logo.png'
 import AdminLogin from './components/AdminLogin'
 import ProductManager from './components/ProductManager'
@@ -134,7 +134,7 @@ const Home = ({ addToCart, products = menuData }) => {
         <div className="container">
           <div className="about-grid" style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '60px', alignItems: 'center'}}>
             <div className="about-img" style={{position: 'relative'}} data-aos="fade-right">
-              <img src="https://lh3.googleusercontent.com/gps-cs-s/AHVAwer3nCGFK5LjJehZVNeKUfJwk0b1eIGeheL2bGX6lEZbUytAJJjVF8ipNxHlIiOe5Kq-26csFkjfjR6nUl05X_1mGmiDu0bfs0gZgVauedpdJRoXLj_Yavm3qkqYvY7Eix693Z-d=s1600" alt="Desi Hut Storefront" style={{width: '100%', borderRadius: '20px', boxShadow: '0 20px 40px rgba(0,0,0,0.4)'}} />
+              <img src="/images/about-storefront.jpg" alt="Desi Hut Storefront" style={{width: '100%', borderRadius: '20px', boxShadow: '0 20px 40px rgba(0,0,0,0.4)'}} />
               <div style={{position: 'absolute', bottom: '-20px', right: '-20px', background: 'var(--primary)', color: 'white', padding: '20px', borderRadius: '15px', fontWeight: 'bold', fontSize: '1.2rem', textAlign: 'center'}}>
                 Established <br/> Premium Taste
               </div>
@@ -554,6 +554,8 @@ const CheckoutPage = ({ cart, clearCart }) => {
   const [isOrdered, setIsOrdered] = useState(false)
   const [orderTrackingId, setOrderTrackingId] = useState('')
   const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+  const DELIVERY_FEE = 100
+  const grandTotal = total + DELIVERY_FEE
 
   const generateTrackingId = () => {
     return 'DH-' + Math.random().toString(36).substr(2, 6).toUpperCase();
@@ -573,7 +575,7 @@ const CheckoutPage = ({ cart, clearCart }) => {
       address: formData.address,
       payment_method: method,
       items: JSON.stringify(cart),
-      total_amount: total,
+      total_amount: grandTotal,
       status: 'Pending',
       tracking_id: trackingId
     }
@@ -584,31 +586,6 @@ const CheckoutPage = ({ cart, clearCart }) => {
       alert('Error placing order: ' + error.message)
       setIsSubmitting(false)
     } else {
-      // Send Email via EmailJS (Optional: catch errors but proceed)
-      try {
-        // Note: You need to replace these with your actual EmailJS credentials
-        // Use placeholders for now
-        /*
-        import emailjs from '@emailjs/browser';
-        await emailjs.send(
-          'YOUR_SERVICE_ID',
-          'YOUR_TEMPLATE_ID',
-          {
-            to_name: formData.name,
-            to_email: formData.email,
-            tracking_id: trackingId,
-            total_amount: total,
-            items: cart.map(item => `${item.name} x ${item.quantity}`).join(', '),
-            address: formData.address
-          },
-          'YOUR_PUBLIC_KEY'
-        );
-        */
-        console.log('Simulation: Email sent to ' + formData.email + ' with Tracking ID: ' + trackingId);
-      } catch (err) {
-        console.error('EmailJS Error:', err);
-      }
-
       setIsOrdered(true)
       setIsSubmitting(false)
       setTimeout(() => clearCart(), 2000)
@@ -628,7 +605,7 @@ const CheckoutPage = ({ cart, clearCart }) => {
               <p style={{marginBottom: '5px', color: 'var(--text-muted)'}}>Your Tracking ID:</p>
               <h3 style={{color: 'var(--primary)', letterSpacing: '2px'}}>{orderTrackingId}</h3>
             </div>
-            <p>Thank you for choosing Desi Hut MJM Restaurant. An email with your tracking details has been sent to {formData.email}.</p>
+            <p>Thank you for choosing Desi Hut MJM Restaurant. Please save your tracking ID above to follow your order status.</p>
             <div style={{marginTop: '30px', display: 'flex', gap: '15px', justifyContent: 'center'}}>
               <Link to={`/track-order?tid=${orderTrackingId}`} className="btn-primary">Track My Order</Link>
               <Link to="/" className="btn-outline">Back to Home</Link>
@@ -680,7 +657,7 @@ const CheckoutPage = ({ cart, clearCart }) => {
             </div>
             
             <button type="submit" className="btn-primary" style={{marginTop: '40px', width: '100%', padding: '18px', fontSize: '1.1rem'}} disabled={cart.length === 0 || isSubmitting}>
-              {isSubmitting ? 'Processing Order...' : `Confirm Order (Rs. ${total.toLocaleString()})`}
+              {isSubmitting ? 'Processing Order...' : `Confirm Order (Rs. ${grandTotal.toLocaleString()})`}
             </button>
           </form>
 
@@ -692,9 +669,17 @@ const CheckoutPage = ({ cart, clearCart }) => {
                 <span>Rs. {(item.price * item.quantity).toLocaleString()}</span>
               </div>
             ))}
+            <div className="summary-row">
+              <span>Subtotal</span>
+              <span>Rs. {total.toLocaleString()}</span>
+            </div>
+            <div className="summary-row">
+              <span>Delivery Fee</span>
+              <span>Rs. {DELIVERY_FEE}</span>
+            </div>
             <div className="summary-row total">
               <span>Total Amount</span>
-              <span>Rs. {total.toLocaleString()}</span>
+              <span>Rs. {grandTotal.toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -757,7 +742,7 @@ const ContactPage = () => {
             <div className="contact-card" style={{background: 'var(--bg-card)', padding: '30px', borderRadius: '16px', border: '1px solid var(--border)'}}>
               <div style={{color: 'var(--primary)', marginBottom: '15px'}}><MessageCircle size={32} /></div>
               <h4 style={{marginBottom: '10px'}}>WhatsApp</h4>
-              <a href="https://wa.me/923073431191?text=Hello%20Desi%20Hut%20MJM%20Restaurant%2C%20I%20would%20like%20to%20inquire%20about..." target="_blank" rel="noopener noreferrer" style={{color: 'var(--text-muted)', textDecoration: 'none'}}>
+              <a href={buildWhatsAppLink('Hello Desi Hut MJM Restaurant, I would like to inquire about...')} target="_blank" rel="noopener noreferrer" style={{color: 'var(--text-muted)', textDecoration: 'none'}}>
                 Chat with us on WhatsApp
               </a>
             </div>
@@ -768,7 +753,7 @@ const ContactPage = () => {
               <a href="tel:03073431191" className="btn-outline" style={{flex: '1', minWidth: '120px', textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}>
                 <Phone size={18} /> Call Now
               </a>
-              <a href="https://wa.me/923073431191?text=Hello%20Desi%20Hut%20MJM%20Restaurant" target="_blank" rel="noopener noreferrer" className="btn-primary" style={{flex: '1', minWidth: '120px', textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}>
+              <a href={buildWhatsAppLink('Hello Desi Hut MJM Restaurant')} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{flex: '1', minWidth: '120px', textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}>
                 <MessageCircle size={18} /> WhatsApp
               </a>
             </div>
@@ -888,8 +873,12 @@ const LoginPage = ({ onLogin }) => {
         if (data.user) {
           // Create initial profile
           await supabase.from('profiles').insert([{ id: data.user.id, email: data.user.email, full_name: formData.name }])
-          onLogin(data.user)
-          alert('Welcome! Your account has been created.')
+          if (data.session) {
+            onLogin(data.user)
+            alert('Welcome! Your account has been created.')
+          } else {
+            alert('Account created! Please check your email to confirm, then login.')
+          }
         }
       }
       navigate('/')
@@ -1051,7 +1040,6 @@ const Footer = () => {
             <p>"No Compromise on Quality & Quantity." Savor the authentic taste of Pakistani BBQ, Handi, and Karahi. Excellence in every bite, tradition in every spice.</p>
             <div className="social-links">
               <a href="https://www.facebook.com/p/Desi-Hut-MJM-Restaurant-61554675945365/" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="Facebook"><Facebook size={20} /></a>
-              <a href="#" className="social-icon" aria-label="Instagram"><Instagram size={20} /></a>
               <a href="tel:03073431191" className="social-icon" aria-label="Phone"><Phone size={20} /></a>
             </div>
           </div>
@@ -1099,7 +1087,6 @@ const Footer = () => {
           <div className="footer-legal-links">
             <Link to="/privacy">Privacy</Link>
             <Link to="/terms">Terms</Link>
-            <a href="#">Cookies</a>
           </div>
         </div>
       </div>
@@ -1132,7 +1119,7 @@ function App() {
       if (session) {
         // Simple logic to check if they are admin or regular user
         // Usually based on metadata or a roles table
-        if (session.user.email.includes('admin') || session.user.app_metadata?.role === 'admin') {
+        if (isAdminUser(session.user)) {
           setAdminUser(session.user)
         } else {
           setUser(session.user)
@@ -1143,7 +1130,7 @@ function App() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        if (session.user.email.includes('admin') || session.user.app_metadata?.role === 'admin') {
+        if (isAdminUser(session.user)) {
           setAdminUser(session.user)
           setUser(null)
         } else {
@@ -1193,10 +1180,6 @@ function App() {
       alert('Admins cannot place orders. Please use a customer account.')
       return
     }
-    if (!user) {
-      navigate('/login', { state: { message: 'To order, please login first.' } })
-      return
-    }
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id)
       if (existing) {
@@ -1227,15 +1210,15 @@ function App() {
       <Navbar cartCount={cart.reduce((s, i) => s + i.quantity, 0)} user={user} adminUser={adminUser} onLogout={handleLogoutAll} />
       <main>
         <Routes>
-          <Route path="/" element={<Home addToCart={addToCart} products={products} />} />
-          <Route path="/menu" element={<MenuPage addToCart={addToCart} products={products} />} />
+          <Route path="/" element={<Home addToCart={addToCart} products={products.length > 0 ? products : menuData} />} />
+          <Route path="/menu" element={<MenuPage addToCart={addToCart} products={products.length > 0 ? products : menuData} />} />
           <Route path="/cart" element={<CartPage cart={cart} updateQty={updateQuantity} removeItem={removeFromCart} />} />
           <Route path="/checkout" element={<CheckoutPage cart={cart} clearCart={clearCart} />} />
           <Route path="/track-order" element={<OrderTracking />} />
-          <Route path="/profile" element={user ? <ProfilePage user={user} onUpdate={setUser} /> : <LoginPage onLogin={setUser} />} />
+          <Route path="/profile" element={user ? <ProfilePage user={user} onUpdate={handleSetUser} /> : <LoginPage onLogin={handleSetUser} />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/my-orders" element={user ? <MyOrders userEmail={user.email} /> : <LoginPage onLogin={setUser} />} />
+          <Route path="/my-orders" element={user ? <MyOrders userEmail={user.email} /> : <LoginPage onLogin={handleSetUser} />} />
           <Route path="/login" element={<LoginPage onLogin={setUser} />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/about" element={<AboutUs />} />

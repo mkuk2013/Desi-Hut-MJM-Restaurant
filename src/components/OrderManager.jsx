@@ -2,6 +2,16 @@ import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { Package, Clock, CheckCircle, Truck, XCircle, Eye } from 'lucide-react'
 
+// Safely normalize order items whether Supabase returns a JSON string or an already-parsed array
+const parseOrderItems = (raw) => {
+  try {
+    const items = typeof raw === 'string' ? JSON.parse(raw) : raw
+    return Array.isArray(items) ? items : []
+  } catch {
+    return []
+  }
+}
+
 const OrderManager = () => {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
@@ -61,7 +71,7 @@ const OrderManager = () => {
             <div className="order-head" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
               <div>
                 <span style={{color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 'bold', display: 'block', marginBottom: '2px'}}>{order.tracking_id || 'No ID'}</span>
-                <span style={{color: 'var(--text-muted)', fontSize: '0.75rem'}}>UUID: #{order.id.slice(0, 8)}</span>
+                <span style={{color: 'var(--text-muted)', fontSize: '0.75rem'}}>UUID: #{String(order.id).slice(0, 8)}</span>
                 <h4 style={{marginTop: '5px'}}>{order.customer_name}</h4>
                 <p style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>{order.email}</p>
               </div>
@@ -72,7 +82,7 @@ const OrderManager = () => {
 
             <div className="order-details" style={{display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px'}}>
               <div className="items-list">
-                {JSON.parse(order.items).map((item, idx) => (
+                {parseOrderItems(order.items).map((item, idx) => (
                   <div key={idx} style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '5px', color: 'var(--text-muted)'}}>
                     <span>{item.name} x {item.quantity}</span>
                     <span>Rs. {item.price * item.quantity}</span>

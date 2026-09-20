@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { Search, Package, Clock, Truck, CheckCircle, XCircle, ArrowRight, AlertCircle, ChevronRight } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
+import { buildWhatsAppLink } from '../lib/siteConfig'
 
 const OrderTracking = () => {
   const location = useLocation()
@@ -176,7 +177,7 @@ const OrderTracking = () => {
               </div>
               
               <div style={{marginTop: '30px', textAlign: 'center'}}>
-                <a href={`https://wa.me/923073431191?text=Hi%2C%20I'm%20inquiring%20about%20my%20order%20${order.tracking_id}`} target="_blank" rel="noopener noreferrer" style={{color: 'var(--primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.9rem'}}>
+                <a href={buildWhatsAppLink(`Hi, I'm inquiring about my order ${order.tracking_id}`)} target="_blank" rel="noopener noreferrer" style={{color: 'var(--primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.9rem'}}>
                    Need help? Contact support on WhatsApp <ChevronRight size={16} />
                 </a>
               </div>
