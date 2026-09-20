@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { db } from '../lib/firebase'
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, writeBatch } from 'firebase/firestore'
 import { Plus, Edit2, Trash2, Save, X, Image as ImageIcon } from 'lucide-react'
 
 const ProductManager = ({ onRefresh }) => {
@@ -14,9 +15,14 @@ const ProductManager = ({ onRefresh }) => {
 
   const fetchProducts = async () => {
     setLoading(true)
-    const { data, error } = await supabase.from('products').select('*').order('id', { ascending: true })
-    if (error) console.error('Error fetching products:', error)
-    else setProducts(data)
+    try {
+      const snap = await getDocs(collection(db, 'products'))
+      const items = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      items.sort((a, b) => (a.sort || 0) - (b.sort || 0))
+      setProducts(items)
+    } catch (err) {
+      console.error('Error fetching products:', err)
+    }
     setLoading(false)
   }
 
@@ -26,27 +32,36 @@ const ProductManager = ({ onRefresh }) => {
   }
 
   const handleSave = async (id) => {
-    const { id: _, created_at, ...updateData } = formData
-    const { error } = id 
-      ? await supabase.from('products').update(updateData).eq('id', id)
-      : await supabase.from('products').insert([updateData])
-    
-    if (error) alert('Error saving product: ' + error.message)
-    else {
+    const { id: _, createdAt, ...updateData } = formData
+    const price = Number(updateData.price)
+    if (!updateData.name || !Number.isFinite(price) || price <= 0) {
+      alert('Please enter a valid name and a price greater than 0.')
+      return
+    }
+    updateData.price = price
+    try {
+      if (id) {
+        await updateDoc(doc(db, 'products', id), updateData)
+      } else {
+        await addDoc(collection(db, 'products'), { ...updateData, sort: Date.now() })
+      }
       setEditingId(null)
       setFormData({ name: '', price: '', category: '', description: '', image: '' })
       fetchProducts()
       if (onRefresh) onRefresh()
+    } catch (err) {
+      alert('Error saving product: ' + err.message)
     }
   }
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this item?')) {
-      const { error } = await supabase.from('products').delete().eq('id', id)
-      if (error) alert('Error deleting product: ' + error.message)
-      else {
+      try {
+        await deleteDoc(doc(db, 'products', id))
         fetchProducts()
         if (onRefresh) onRefresh()
+      } catch (err) {
+        alert('Error deleting product: ' + err.message)
       }
     }
   }
@@ -61,14 +76,15 @@ const ProductManager = ({ onRefresh }) => {
               try {
                 setLoading(true)
                 // 1. Clear existing data
-                const { error: deleteError } = await supabase.from('products').delete().gte('id', 0)
-                if (deleteError) throw deleteError
+                const existing = await getDocs(collection(db, 'products'))
+                const batch = writeBatch(db)
+                existing.docs.forEach(d => batch.delete(d.ref))
+                await batch.commit()
 
                 // 2. Import and sanitize initial data
                 const { menuData: initialData } = await import('../lib/menuData')
-                const cleanData = initialData.map(({ id, ...rest }) => {
-                  // Sanitize strings
-                  const sanitized = {}
+                const cleanData = initialData.map(({ id, ...rest }, idx) => {
+                  const sanitized = { sort: idx }
                   Object.keys(rest).forEach(key => {
                     if (typeof rest[key] === 'string') {
                       sanitized[key] = rest[key].trim().replace(/[\n\r]/g, ' ')
@@ -80,8 +96,9 @@ const ProductManager = ({ onRefresh }) => {
                 })
 
                 // 3. Insert new data
-                const { error: insertError } = await supabase.from('products').insert(cleanData)
-                if (insertError) throw insertError
+                for (const item of cleanData) {
+                  await addDoc(collection(db, 'products'), item)
+                }
 
                 alert('Database cleared and seeded successfully!')
                 fetchProducts()

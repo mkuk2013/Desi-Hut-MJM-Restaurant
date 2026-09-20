@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { auth } from '../lib/firebase'
+import { sendPasswordResetEmail } from 'firebase/auth'
 import { Mail, ArrowLeft, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
@@ -14,11 +15,7 @@ const ForgotPassword = () => {
     setMessage({ type: '', text: '' })
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      })
-
-      if (error) throw error
+      await sendPasswordResetEmail(auth, email)
 
       setMessage({ 
         type: 'success', 

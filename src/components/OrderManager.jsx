@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { db, tsToDate } from '../lib/firebase'
+import { collection, getDocs, doc, updateDoc, onSnapshot } from 'firebase/firestore'
 import { Package, Clock, CheckCircle, Truck, XCircle, Eye } from 'lucide-react'
 
 // Safely normalize order items whether Supabase returns a JSON string or an already-parsed array
@@ -17,35 +18,29 @@ const OrderManager = () => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchOrders()
-    // Subscribe to real-time changes
-    const subscription = supabase
-      .channel('public:orders')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, fetchOrders)
-      .subscribe()
-
-    return () => supabase.removeChannel(subscription)
+    setLoading(true)
+    // Real-time subscription to orders
+    const unsub = onSnapshot(collection(db, 'orders'),
+      (snap) => {
+        const items = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        items.sort((a, b) => tsToDate(b.createdAt) - tsToDate(a.createdAt))
+        setOrders(items)
+        setLoading(false)
+      },
+      (err) => {
+        console.error('Error fetching orders:', err)
+        setLoading(false)
+      }
+    )
+    return () => unsub()
   }, [])
 
-  const fetchOrders = async () => {
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*')
-      .order('created_at', { ascending: false })
-    
-    if (error) console.error('Error fetching orders:', error)
-    else setOrders(data)
-    setLoading(false)
-  }
-
   const updateStatus = async (id, newStatus) => {
-    const { error } = await supabase
-      .from('orders')
-      .update({ status: newStatus })
-      .eq('id', id)
-    
-    if (error) alert('Error updating status: ' + error.message)
-    else fetchOrders()
+    try {
+      await updateDoc(doc(db, 'orders', id), { status: newStatus })
+    } catch (err) {
+      alert('Error updating status: ' + err.message)
+    }
   }
 
   const getStatusColor = (status) => {

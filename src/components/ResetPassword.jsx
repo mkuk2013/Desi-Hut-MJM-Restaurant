@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { auth } from '../lib/firebase'
+import { confirmPasswordReset } from 'firebase/auth'
+import { useLocation } from 'react-router-dom'
 import { Lock, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -9,6 +11,8 @@ const ResetPassword = () => {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
   const navigate = useNavigate()
+  const location = useLocation()
+  const oobCode = new URLSearchParams(location.search).get('oobCode')
 
   const handleUpdate = async (e) => {
     e.preventDefault()
@@ -19,10 +23,13 @@ const ResetPassword = () => {
     setLoading(true)
     setMessage({ type: '', text: '' })
 
-    try {
-      const { error } = await supabase.auth.updateUser({ password: password })
+    if (!oobCode) {
+      setLoading(false)
+      return setMessage({ type: 'error', text: 'Invalid or expired reset link. Please request a new one from the login page.' })
+    }
 
-      if (error) throw error
+    try {
+      await confirmPasswordReset(auth, oobCode, password)
 
       setMessage({ type: 'success', text: 'Password has been reset successfully! Redirecting to login...' })
       setTimeout(() => navigate('/login'), 3000)

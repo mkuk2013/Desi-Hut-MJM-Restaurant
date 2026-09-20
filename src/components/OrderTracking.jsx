@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { db, tsToDate } from '../lib/firebase'
+import { collection, getDocs, query, where, limit } from 'firebase/firestore'
 import { Search, Package, Clock, Truck, CheckCircle, XCircle, ArrowRight, AlertCircle, ChevronRight } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { buildWhatsAppLink } from '../lib/siteConfig'
@@ -25,20 +26,22 @@ const OrderTracking = () => {
     setError('')
     setOrder(null)
 
-    const { data, error: supabaseError } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('tracking_id', id.trim().toUpperCase())
-      .maybeSingle()
-
-    setLoading(false)
-    if (supabaseError) {
+    try {
+      const snap = await getDocs(query(
+        collection(db, 'orders'),
+        where('tracking_id', '==', id.trim().toUpperCase()),
+        limit(1)
+      ))
+      setLoading(false)
+      if (snap.empty) {
+        setError('Order not found. Please check your tracking ID and try again.')
+      } else {
+        setOrder({ id: snap.docs[0].id, ...snap.docs[0].data() })
+      }
+    } catch (err) {
+      setLoading(false)
       setError('An error occurred while fetching the order. Please try again later.')
-      console.error(supabaseError)
-    } else if (!data) {
-      setError('Order not found. Please check your tracking ID and try again.')
-    } else {
-      setOrder(data)
+      console.error(err)
     }
   }
 
@@ -136,7 +139,7 @@ const OrderTracking = () => {
                 </div>
                 <div style={{textAlign: 'right'}}>
                   <p style={{color: 'var(--text-muted)', fontSize: '0.9rem'}}>Order Placed</p>
-                  <p style={{fontWeight: '500'}}>{new Date(order.created_at).toLocaleDateString()} {new Date(order.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                  <p style={{fontWeight: '500'}}>{tsToDate(order.createdAt).toLocaleDateString()} {tsToDate(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
                 </div>
               </div>
 

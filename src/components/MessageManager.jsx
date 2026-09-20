@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { db, tsToDate } from '../lib/firebase'
+import { collection, getDocs, deleteDoc, doc, query, orderBy } from 'firebase/firestore'
 import { Mail, Trash2, Clock, User, MessageSquare } from 'lucide-react'
 
 const MessageManager = () => {
@@ -12,40 +13,28 @@ const MessageManager = () => {
 
   const fetchMessages = async () => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('messages')
-      .select('*')
-      .order('created_at', { ascending: false })
-    
-    if (error) console.error('Error fetching messages:', error)
-    else setMessages(data)
+    try {
+      const snap = await getDocs(query(collection(db, 'messages'), orderBy('createdAt', 'desc')))
+      setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+    } catch (err) {
+      console.error('Error fetching messages:', err)
+    }
     setLoading(false)
   }
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this message?')) {
       try {
-        const { data, error } = await supabase
-          .from('messages')
-          .delete()
-          .eq('id', id)
-          .select()
-        
-        if (error) {
-          alert('Error deleting message: ' + error.message)
-        } else if (!data || data.length === 0) {
-          alert('Delete command succeeded but 0 rows were deleted. This usually means a permissions (RLS) issue or the message ID (' + id + ') was not found.')
-        } else {
-          fetchMessages()
-        }
+        await deleteDoc(doc(db, 'messages', id))
+        fetchMessages()
       } catch (err) {
-        alert('Exception during delete: ' + err.message)
+        alert('Error deleting message: ' + err.message)
       }
     }
   }
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
+  const formatDate = (dateValue) => {
+    const date = tsToDate(dateValue)
     return date.toLocaleString('en-PK', {
       day: '2-digit',
       month: 'short',
@@ -77,7 +66,7 @@ const MessageManager = () => {
               </div>
               <div style={{textAlign: 'right'}}>
                 <div style={{display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '5px'}}>
-                  <Clock size={14} /> {formatDate(msg.created_at)}
+                  <Clock size={14} /> {formatDate(msg.createdAt)}
                 </div>
                 <div style={{display: 'flex', gap: '10px', justifyContent: 'flex-end'}}>
                   <a 

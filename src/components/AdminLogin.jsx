@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { auth, normalizeUser } from '../lib/firebase'
+import { signInWithEmailAndPassword } from 'firebase/auth'
 import { Lock, Mail, AlertCircle, Loader2 } from 'lucide-react'
 import logo from '../assets/logo.png'
 
@@ -14,16 +15,12 @@ const AdminLogin = ({ onLogin }) => {
     setLoading(true)
     setError(null)
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    })
-
-    if (error) {
-      setError(error.message)
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password)
+      onLogin(normalizeUser(cred.user))
+    } catch (err) {
+      setError(err.message)
       setLoading(false)
-    } else {
-      onLogin(data.user)
     }
   }
 

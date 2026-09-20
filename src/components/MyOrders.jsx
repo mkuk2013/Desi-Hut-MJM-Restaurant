@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { db, tsToDate } from '../lib/firebase'
+import { collection, getDocs, query, where } from 'firebase/firestore'
 import { Package, Clock, Truck, CheckCircle, XCircle, ArrowRight, ShoppingBag } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
@@ -28,24 +29,14 @@ const MyOrders = ({ userEmail }) => {
 
   const fetchUserOrders = async () => {
     setLoading(true)
-    console.log('Fetching orders for email:', userEmail);
     try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('email', userEmail)
-        .order('created_at', { ascending: false })
-      
-      if (error) {
-        console.error('Supabase Error:', error)
-        setError('Database error: ' + error.message)
-      } else {
-        console.log('Orders found:', data);
-        setOrders(data)
-      }
+      const snap = await getDocs(query(collection(db, 'orders'), where('email', '==', userEmail)))
+      const items = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      items.sort((a, b) => tsToDate(b.createdAt) - tsToDate(a.createdAt))
+      setOrders(items)
     } catch (err) {
       console.error('Fetch Exception:', err)
-      setError('Network error: ' + err.message)
+      setError('Database error: ' + err.message)
     }
     setLoading(false)
   }
@@ -113,7 +104,7 @@ const MyOrders = ({ userEmail }) => {
                   <div>
                     <h4 style={{marginBottom: '5px'}}>Order #{order.tracking_id || String(order.id).slice(0, 8)}</h4>
                     <p style={{fontSize: '0.85rem', color: 'var(--text-muted)'}}>
-                      {new Date(order.created_at).toLocaleDateString()} at {new Date(order.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      {tsToDate(order.createdAt).toLocaleDateString()} at {tsToDate(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                     </p>
                     <p style={{marginTop: '5px', fontWeight: 'bold', color: 'var(--primary)'}}>Rs. {order.total_amount.toLocaleString()}</p>
                   </div>

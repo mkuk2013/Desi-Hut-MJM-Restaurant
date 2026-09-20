@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { auth, db } from '../lib/firebase'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { updatePassword } from 'firebase/auth'
 import { User, Phone, MapPin, Save, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 
 const ProfilePage = ({ user, onUpdate }) => {
@@ -23,15 +25,9 @@ const ProfilePage = ({ user, onUpdate }) => {
   const fetchProfile = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle()
-
-      if (error) throw error
-      
-      if (data) {
+      const snap = await getDoc(doc(db, 'profiles', user.id))
+      if (snap.exists()) {
+        const data = snap.data()
         setProfile({
           full_name: data.full_name || '',
           phone: data.phone || '',
@@ -52,19 +48,14 @@ const ProfilePage = ({ user, onUpdate }) => {
     setMessage({ type: '', text: '' })
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          email: user.email,
-          full_name: profile.full_name,
-          phone: profile.phone,
-          address: profile.address,
-          updated_at: new Error().toISOString() // Using new date
-        })
+      await setDoc(doc(db, 'profiles', user.id), {
+        email: user.email,
+        full_name: profile.full_name,
+        phone: profile.phone,
+        address: profile.address,
+        updated_at: new Date().toISOString()
+      }, { merge: true })
 
-      if (error) throw error
-      
       setMessage({ type: 'success', text: 'Profile updated successfully!' })
       if (onUpdate) onUpdate({ ...user, name: profile.full_name })
     } catch (error) {
@@ -88,8 +79,8 @@ const ProfilePage = ({ user, onUpdate }) => {
     setMessage({ type: '', text: '' })
 
     try {
-      const { error } = await supabase.auth.updateUser({ password: passData.new_password })
-      if (error) throw error
+      if (!auth.currentUser) throw new Error('Please log in again to change your password.')
+      await updatePassword(auth.currentUser, passData.new_password)
       setMessage({ type: 'success', text: 'Password updated successfully!' })
       setPassData({ new_password: '', confirm_password: '' })
     } catch (error) {

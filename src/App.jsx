@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { ShoppingCart, User, LogOut, Menu as MenuIcon, X, Phone, MapPin, Facebook, Search, Filter, Plus, Minus, Trash2, Box, Utensils, CheckCircle, MessageCircle, ChevronUp, ChevronDown, AlertCircle, Star } from 'lucide-react'
 import { menuData } from './lib/menuData'
-import { supabase } from './lib/supabase'
+import { auth, db, normalizeUser } from './lib/firebase'
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth'
+import { collection, addDoc, getDocs, doc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { buildWhatsAppLink, isAdminUser, FACEBOOK_URL } from './lib/siteConfig'
 import logo from './assets/logo.png'
 import AdminLogin from './components/AdminLogin'
@@ -574,22 +576,23 @@ const CheckoutPage = ({ cart, clearCart }) => {
       phone: formData.phone,
       address: formData.address,
       payment_method: method,
-      items: JSON.stringify(cart),
+      items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity, image: item.image || '' })),
       total_amount: grandTotal,
       status: 'Pending',
       tracking_id: trackingId
     }
 
-    const { error } = await supabase.from('orders').insert([orderData])
-    
-    if (error) {
-      alert('Error placing order: ' + error.message)
+    try {
+      await addDoc(collection(db, 'orders'), { ...orderData, createdAt: serverTimestamp() })
+    } catch (err) {
+      alert('Error placing order: ' + err.message)
       setIsSubmitting(false)
-    } else {
-      setIsOrdered(true)
-      setIsSubmitting(false)
-      setTimeout(() => clearCart(), 2000)
+      return
     }
+
+    setIsOrdered(true)
+    setIsSubmitting(false)
+    setTimeout(() => clearCart(), 2000)
   }
 
   if (isOrdered) {
@@ -697,16 +700,15 @@ const ContactPage = () => {
     e.preventDefault()
     setIsSubmitting(true)
     
-    const { error } = await supabase.from('messages').insert([formData])
-    
-    setIsSubmitting(false)
-    if (error) {
-      alert('Error sending message: ' + error.message)
-    } else {
+    try {
+      await addDoc(collection(db, 'messages'), { ...formData, createdAt: serverTimestamp() })
       setSubmitted(true)
       setFormData({ name: '', email: '', message: '' })
       setTimeout(() => setSubmitted(false), 5000)
+    } catch (err) {
+      alert('Error sending message: ' + err.message)
     }
+    setIsSubmitting(false)
   }
 
   return (
@@ -853,33 +855,19 @@ const LoginPage = ({ onLogin }) => {
 
     try {
       if (isLogin) {
-        // Real Login
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        })
-        if (error) throw error
-        onLogin(data.user)
+        // Firebase login
+        const cred = await signInWithEmailAndPassword(auth, formData.email, formData.password)
+        onLogin(normalizeUser(cred.user))
       } else {
-        // Real Sign Up
-        const { data, error } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            data: { full_name: formData.name }
-          }
+        // Firebase sign up
+        const cred = await createUserWithEmailAndPassword(auth, formData.email, formData.password)
+        await setDoc(doc(db, 'profiles', cred.user.uid), {
+          email: cred.user.email,
+          full_name: formData.name,
+          created_at: new Date().toISOString()
         })
-        if (error) throw error
-        if (data.user) {
-          // Create initial profile
-          await supabase.from('profiles').insert([{ id: data.user.id, email: data.user.email, full_name: formData.name }])
-          if (data.session) {
-            onLogin(data.user)
-            alert('Welcome! Your account has been created.')
-          } else {
-            alert('Account created! Please check your email to confirm, then login.')
-          }
-        }
+        onLogin(normalizeUser(cred.user))
+        alert('Welcome! Your account has been created.')
       }
       navigate('/')
     } catch (err) {
@@ -1107,34 +1095,25 @@ function App() {
   const [products, setProducts] = useState([])
 
   const fetchProducts = async () => {
-    const { data, error } = await supabase.from('products').select('*').order('id', { ascending: true })
-    if (!error && data && data.length > 0) {
-      setProducts(data)
+    try {
+      const snap = await getDocs(collection(db, 'products'))
+      const items = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      items.sort((a, b) => (a.sort || 0) - (b.sort || 0))
+      if (items.length > 0) setProducts(items)
+    } catch (err) {
+      console.error('Error fetching products:', err)
     }
   }
   
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        // Simple logic to check if they are admin or regular user
-        // Usually based on metadata or a roles table
-        if (isAdminUser(session.user)) {
-          setAdminUser(session.user)
-        } else {
-          setUser(session.user)
-        }
-      }
-    }
-    checkUser()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        if (isAdminUser(session.user)) {
-          setAdminUser(session.user)
+    const unsubAuth = onAuthStateChanged(auth, (fbUser) => {
+      const u = normalizeUser(fbUser)
+      if (u) {
+        if (isAdminUser(u)) {
+          setAdminUser(u)
           setUser(null)
         } else {
-          setUser(session.user)
+          setUser(u)
           setAdminUser(null)
         }
       } else {
@@ -1151,12 +1130,12 @@ function App() {
     }, 1500)
     return () => {
       clearTimeout(timer)
-      subscription.unsubscribe()
+      unsubAuth()
     }
   }, [])
 
   const handleLogoutAll = async () => {
-    await supabase.auth.signOut()
+    await signOut(auth)
     localStorage.removeItem('desi_hut_user')
     setAdminUser(null)
     setUser(null)
